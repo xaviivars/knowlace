@@ -29,15 +29,14 @@ export default function RootLayout({
 
             <div className="flex flex-col min-h-screen">
 
-              <header className="w-full border-b border-white/10 bg-[#1e3a7f]">
+              <header className="w-full h-18 border-b border-white/30 bg-[#0e1d38]">
                 <div className="max-w-6l mx-auto px-6 py-4 flex justify-between items-center">
-                  <h1 className="text-xl font-bold text-white">
+                  <h1 className="text-3xl font-bold text-white">
                     Knowlace.
                   </h1>
 
-                  <nav className="space-x-6 text-sm text-white">
+                  <nav className="space-x-6 text-m text-white">
                     <a href="#">About</a>
-                    <a href="#">Login</a>
                   </nav>
                 </div>
               </header>
