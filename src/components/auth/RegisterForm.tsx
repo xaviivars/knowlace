@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
+import Link from 'next/link'
 
 type RegisterFormProps = {
   className?: string
@@ -57,9 +58,11 @@ export function RegisterForm ({
 
                     <div className="text-center mb-1 text-sm text-white">
                         ¿Ya estás registrado?
-                        <span className="ml-1 underline cursor-pointer hover:text-blue-400 transition">
-                        Inicia sesión.
-                        </span>
+                        <Link href="/login">
+                            <span className="ml-1 underline cursor-pointer hover:text-blue-400 transition">
+                            Inicia sesión.
+                            </span>
+                        </Link>
                     </div>
             </div>
         

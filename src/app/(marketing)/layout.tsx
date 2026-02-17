@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function MarketingLayout({
   children,
 }: {
@@ -13,16 +15,19 @@ export default function MarketingLayout({
           </h1>
 
           <nav className="flex items-center gap-4 text-white text-sm">
+            <Link href="/join">
               <span className="cursor-pointer font-bold hover:text-blue-400 transition">
                 Introducir código
               </span>
+            </Link>
 
               <span className="text-white/70 font-bold">|</span>
 
-                <span className="cursor-pointer hover:text-blue-400 transition">
-                  Acerca de
-                </span>
+              <span className="cursor-pointer hover:text-blue-400 transition">
+                Acerca de
+              </span>
           </nav>
+          
         </div>
       </header>
 

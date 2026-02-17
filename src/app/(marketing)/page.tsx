@@ -6,8 +6,6 @@ import { HeroCTA } from '@/components/landing/HeroCTA';
 import FeatureCard from "@/components/landing/FeatureCard";
 import { BoltIcon, ClockIcon, EyeIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-
-
 export default function Home () {
 
   const [showJoinBar, setShowJoinBar] = useState(true)
