@@ -15,9 +15,9 @@ export function HeroCTA() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 mt-12">
+          <div className="flex flex-col items-center gap-4 mt-12">
             <Link href="/login">
-              <Button>
+              <Button className="w-80 h-12">
                 Iniciar sesión como profesor
               </Button>
             </Link>

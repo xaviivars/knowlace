@@ -15,7 +15,7 @@ export default function Join () {
                     placeholder="Introduce un código de sesión"
                 />
 
-                <Button>
+                <Button className="w-80 h-12">
                     Unirse
                 </Button>
             </div>

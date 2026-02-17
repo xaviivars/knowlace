@@ -27,7 +27,7 @@ export function LoginForm ({
                     <p className="text-white py-2">Te hemos estado esperando.</p>
                 </div>
 
-                <div className="flex flex-col gap-6 my-6">
+                <div className="flex flex-col items-center gap-6 my-6">
                     <Input
                         label="Correo electrónico"
                         type="email"
@@ -40,7 +40,7 @@ export function LoginForm ({
                         placeholder="••••••••"
                     />
 
-                    <Button>
+                    <Button className="w-80 h-12">
                         Iniciar sesión
                     </Button>
                 </div>

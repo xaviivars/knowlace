@@ -27,7 +27,7 @@ export function RegisterForm ({
                     <p className="text-white py-2">Empieza a crear sesiones interactivas en minutos.</p>
                 </div>    
 
-                <div className="flex flex-col gap-5 my-4">
+                <div className="flex flex-col items-center gap-5 my-4">
                     <Input
                         label="Nombre"
                         type="text"
@@ -52,7 +52,7 @@ export function RegisterForm ({
                         placeholder="john_doe"
                     />
 
-                    <Button>
+                    <Button className="w-80 h-12">
                         Registrarse
                     </Button>
 

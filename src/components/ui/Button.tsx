@@ -1,14 +1,12 @@
 type ButtonProps = {
   children: React.ReactNode
+  className?: string
 }
 
-export function Button ({ children }: ButtonProps) {
+export function Button ({ children, className = "" }: ButtonProps) {
     return (
         <button
-            className="
-                w-80
-                h-12
-                mx-auto
+            className={`
                 bg-amber-400
                 text-black
                 text-lg
@@ -22,7 +20,9 @@ export function Button ({ children }: ButtonProps) {
                 active:scale-95
                 active:shadow-md
                 cursor-pointer
-            "
+                ${className}
+            `
+            }
             >
       {children}
     </button>
