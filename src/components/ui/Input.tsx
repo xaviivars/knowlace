@@ -5,7 +5,7 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string
 }
 
-const Input = ({ label, error, className = "", ...props }: InputProps) => {
+export function Input ({ label, error, className = "", ...props }: InputProps) {
   return (
     <div className="flex flex-col gap-2 w-full">
       
@@ -41,5 +41,3 @@ const Input = ({ label, error, className = "", ...props }: InputProps) => {
     </div>
   )
 }
-
-export default Input

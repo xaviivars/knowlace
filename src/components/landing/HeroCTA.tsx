@@ -1,10 +1,10 @@
-import Button from "../ui/Button"
+import { Button } from "../ui/Button"
 import Link from 'next/link'
 
-const HeroCTA = () => {
+export function HeroCTA() {
 
     return (
-        <div className="bg-[#0e1d38] w-120 h-60 rounded-3xl p-6 shadow-2xl">
+        <div className="bg-[#0e1d38] w-120 h-115 rounded-3xl p-6 shadow-2xl">
 
           <div className="mb-6">
             <h2 className="text-white text-4xl font-bold">
@@ -32,5 +32,3 @@ const HeroCTA = () => {
     )
 
 }
-
-export default HeroCTA

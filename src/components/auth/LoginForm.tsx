@@ -1,13 +1,13 @@
-import Input from "@/components/ui/Input"
-import Button from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/Button"
 
 type LoginFormProps = {
   className?: string
 }
 
-const LoginForm = ({
+export function LoginForm ({
   className = "",
-}: LoginFormProps) => {
+}: LoginFormProps) {
     return (
         <div
             className={`
@@ -53,6 +53,3 @@ const LoginForm = ({
         </div>
     )
 }
-
-
-export default LoginForm

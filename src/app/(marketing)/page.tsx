@@ -1,5 +1,5 @@
 import LightRays from '@/components/LightRays';
-import HeroCTA from '@/components/landing/HeroCTA';
+import { HeroCTA } from '@/components/landing/HeroCTA';
 import FeatureCard from "@/components/landing/FeatureCard";
 import { BoltIcon, ClockIcon, EyeIcon } from "@heroicons/react/24/outline";
 
