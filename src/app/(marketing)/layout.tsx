@@ -12,8 +12,16 @@ export default function MarketingLayout({
             Knowlace.
           </h1>
 
-          <nav className="space-x-6 text-m text-white">
-            <a href="#">About</a>
+          <nav className="flex items-center gap-4 text-white text-sm">
+              <span className="cursor-pointer font-bold hover:text-blue-400 transition">
+                Introducir código
+              </span>
+
+              <span className="text-white/70 font-bold">|</span>
+
+                <span className="cursor-pointer hover:text-blue-400 transition">
+                  Acerca de
+                </span>
           </nav>
         </div>
       </header>

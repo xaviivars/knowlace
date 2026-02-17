@@ -1,25 +1,52 @@
+"use client"
+
+import { useState } from "react"
 import LightRays from '@/components/LightRays';
 import { HeroCTA } from '@/components/landing/HeroCTA';
 import FeatureCard from "@/components/landing/FeatureCard";
-import { BoltIcon, ClockIcon, EyeIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, ClockIcon, EyeIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-const Home = () => {
+
+
+export default function Home () {
+
+  const [showJoinBar, setShowJoinBar] = useState(true)
+
   return (
 
     <div className="relative min-h-screen overflow-hidden">
-      
-      <header className="w-full h-12 bg-[#c3ceec]">
-        <div className="mx-auto text-center flex items-center justify-center h-full">
-          Introduce un código para unirte a una sesión existente
-          <input className="bg-white rounded-xl w-28 h-8 ml-4">
-          </input>
+        <header 
+          className={`
+            w-full
+            bg-[#c3ceec]
+            relative
+            transition-all duration-300 ease-in-out
+            ${showJoinBar ? "h-12 opacity-100" : "h-0 opacity-0"}
+            `}
+          >
+          <div className="px-6 flex items-center justify-center h-full">
+            <div className="flex items-center">
+              <span>
+                Introduce un código para unirte a una sesión existente
+              </span>
 
-          <button className="bg-blue-500 ml-2 w-16 h-8 font-semibold flex items-center justify-center text-white text-sm px-4 py-1 rounded-md hover:bg-blue-600 transition">
-            Unirse
-          </button>
+              <input className="bg-white rounded-xl w-28 h-8 ml-4"/>
 
-        </div>
-      </header>
+              <button className="bg-blue-500 ml-2 w-16 h-8 font-semibold flex items-center justify-center text-white text-sm px-4 py-1 rounded-md hover:bg-blue-600 transition">
+                Unirse
+              </button>
+
+            </div>
+
+            <button 
+              onClick={() => setShowJoinBar(false)}
+              className="absolute right-6 text-gray-600 hover:text-gray-900 transition text-xl font-semibold"
+              >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+
+          </div>
+        </header>
 
       <LightRays
         raysOrigin="top-center"
@@ -85,5 +112,3 @@ const Home = () => {
     </div>
   )
 }
-
-export default Home

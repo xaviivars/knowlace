@@ -4,7 +4,7 @@ import Link from 'next/link'
 export function HeroCTA() {
 
     return (
-        <div className="bg-[#0e1d38] w-120 h-115 rounded-3xl p-6 shadow-2xl">
+        <div className="bg-[#0e1d38] w-120 h-60 rounded-3xl p-6 shadow-2xl">
 
           <div className="mb-6">
             <h2 className="text-white text-4xl font-bold">
@@ -24,9 +24,11 @@ export function HeroCTA() {
           </div>
           <div className="mt-4 text-center text-sm text-white">
             ¿No estás registrado?
-            <span className="ml-1 underline cursor-pointer hover:text-blue-400 transition">
-              Crear cuenta
-            </span>
+            <Link href="/register">
+              <span className="ml-1 underline cursor-pointer hover:text-blue-400 transition">
+                Crear cuenta
+              </span>
+            </Link>
           </div>
         </div>
     )
