@@ -1,9 +1,10 @@
 import Button from "../ui/Button"
+import Link from 'next/link'
 
 const HeroCTA = () => {
 
     return (
-        <div className="bg-[#0e1d38] w-120 h-115 rounded-3xl p-6 shadow-2xl">
+        <div className="bg-[#0e1d38] w-120 h-60 rounded-3xl p-6 shadow-2xl">
 
           <div className="mb-6">
             <h2 className="text-white text-4xl font-bold">
@@ -15,9 +16,11 @@ const HeroCTA = () => {
           </div>
 
           <div className="flex flex-col gap-4 mt-12">
-            <Button>
-              Iniciar sesión como profesor
-            </Button>
+            <Link href="/login">
+              <Button>
+                Iniciar sesión como profesor
+              </Button>
+            </Link>
           </div>
           <div className="mt-4 text-center text-sm text-white">
             ¿No estás registrado?

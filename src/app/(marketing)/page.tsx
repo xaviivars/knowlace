@@ -1,7 +1,7 @@
-import LightRays from '../components/LightRays';
+import LightRays from '@/components/LightRays';
 import HeroCTA from '@/components/landing/HeroCTA';
 import FeatureCard from "@/components/landing/FeatureCard";
-import { BoltIcon, BoltSlashIcon, ClockIcon, EyeIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, ClockIcon, EyeIcon } from "@heroicons/react/24/outline";
 
 const Home = () => {
   return (
