@@ -1,36 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Knowlace - Presentaciones interactivas gamificadas en tiempo real
 
-## Getting Started
+Knowlace es una plataforma web educativa, actualmente en desarrollo, que permite a los docentes crear sesiones interactivas enriquecidas con preguntas generadas automáticamente mediante Inteligencia Artificial.
 
-First, run the development server:
+El objetivo es facilitar la preparación de actividades dinámicas, mejorar la participación y el foco del alumnado y proporcionar herramientas que ayuden a detectar dificultades en la comprensión de los contenidos.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🎓 Trabajo de Fin de Grado
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Este proyecto forma parte de mi Trabajo de Fin de Grado en Ingeniería Informática.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Su desarrollo se centra en el diseño e implementación técnica de una arquitectura SaaS orientada al entorno educativo. La aplicación integra modelos de Inteligencia Artificial para la generación automática de contenido evaluable a partir de materiales proporcionados por el docente, permitiendo su utilización en sesiones de presentación en tiempo real con acceso controlado del alumnado.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Tech Stack
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- PostgreSQL 17
+- Prisma ORM
+- Docker
+- BetterAuth
+- Google OAuth 2.0
+- TailwindCSS
