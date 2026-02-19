@@ -1,17 +1,22 @@
-"use client"
+"use server"
 
-import { useRouter } from "next/navigation"
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/auth/RegisterForm"
 
-export default function Register () {
-  const router = useRouter()
+export default async function Register () {
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session) {
+    redirect("/dashboard");
+  }
 
   return (
     <>
-      <button onClick={() => router.push("/")} className="fixed top-6 left-6 text-white hover:text-blue-400 transition">
-        ← Volver
-      </button>
-
       <div className="relative w-full max-w-md">
         <RegisterForm/>
       </div>

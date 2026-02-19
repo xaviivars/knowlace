@@ -1,9 +1,10 @@
-type ButtonProps = {
-  children: React.ReactNode
+import { ButtonHTMLAttributes } from "react"
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   className?: string
 }
 
-export function Button ({ children, className = "" }: ButtonProps) {
+export function Button ({ children, className = "", ...props }: ButtonProps) {
     return (
         <button
             className={`
@@ -21,9 +22,9 @@ export function Button ({ children, className = "" }: ButtonProps) {
                 active:shadow-md
                 cursor-pointer
                 ${className}
-            `
-            }
-            >
+              `}
+            {...props}
+          >
       {children}
     </button>
   )

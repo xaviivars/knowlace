@@ -1,17 +1,22 @@
-"use client"
+"use server"
 
-import { useRouter } from "next/navigation"
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm"
 
-export default function Login() {
-  const router = useRouter()
+export default async function Login() {
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session) {
+    redirect("/dashboard");
+  }
 
   return (
     <>
-      <button onClick={() => router.push("/")} className="fixed top-6 left-6 text-white hover:text-blue-400 transition">
-        ← Volver
-      </button>
-
       <div className="relative w-full max-w-md">
         <LoginForm />
       </div>

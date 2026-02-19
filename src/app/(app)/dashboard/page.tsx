@@ -1,8 +1,8 @@
-"use client"
+"use server"
 
 import { Button } from "@/components/ui/Button"
 
-export default function Dashboard () {
+export default async function Dashboard () {
 
     return (
         <div className="min-h-screen bg-[#0e1d38] text-white p-4">
