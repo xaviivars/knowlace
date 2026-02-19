@@ -5,6 +5,7 @@ import { useState } from "react"
 import { signUp } from "@/lib/actions/auth-actions"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
+import { SocialAuthButton } from "./SocialAuthButton"
 import Link from 'next/link'
 
 type RegisterFormProps = {
@@ -47,7 +48,7 @@ export function RegisterForm ({
             className={`
                 bg-[#0f1b2d]
                 w-120
-                h-160
+                h-170
                 rounded-3xl
                 p-8
                 shadow-2xl
@@ -120,6 +121,20 @@ export function RegisterForm ({
                     </Link>
                 </div>
             </div>
+
+                <div className="my-6 flex items-center">
+                    <div className="flex-1 border-t border-white/20"></div>
+                        <span className="px-4 text-sm text-white/60">
+                            O regístrate con
+                        </span>
+                    <div className="flex-1 border-t border-white/20"></div>
+                </div>
+                
+                <div className="flex justify-center">
+                    <SocialAuthButton provider="google" mode="register"/>  
+                </div>
+
+            
         </form>
     )
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { signIn } from "@/lib/actions/auth-actions"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
+import { SocialAuthButton } from "./SocialAuthButton"
 import Link from 'next/link'
 
 type LoginFormProps = {
@@ -46,7 +47,7 @@ export function LoginForm ({
             className={`
                 bg-[#0f1b2d]
                 w-120
-                h-120
+                h-150
                 rounded-3xl
                 p-8
                 shadow-2xl
@@ -106,6 +107,19 @@ export function LoginForm ({
                         </span>
                     </Link>
                 </div>
+
+                <div className="my-6 flex items-center">
+                    <div className="flex-1 border-t border-white/20"></div>
+                        <span className="px-4 text-sm text-white/60">
+                            O continúa con
+                        </span>
+                    <div className="flex-1 border-t border-white/20"></div>
+                </div>
+                
+                <div className="flex justify-center">
+                    <SocialAuthButton provider="google" mode="login"/>  
+                </div>
+
         </form>
     )
 }
