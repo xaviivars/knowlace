@@ -32,7 +32,7 @@ export default function DashboardLayout({
         <form action={signOut}>
           <button
             type="submit"
-            className="w-full mt-8 bg-red-500 hover:bg-red-600 transition p-3 rounded-xl font-semibold"
+            className="w-full mt-8 bg-red-500 hover:bg-red-600 transition p-3 rounded-xl font-semibold cursor-pointer"
           >
             Cerrar sesión
           </button>
