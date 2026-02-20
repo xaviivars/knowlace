@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import SessionClient from "./SessionClient"
 
 export default async function PublicSessionPage({
   params,
@@ -8,9 +9,11 @@ export default async function PublicSessionPage({
 }) {
   const { accessCode } = await params
 
+  const normalizedCode = accessCode.toUpperCase()
+
   const session = await prisma.teachingSession.findUnique({
     where: {
-      accessCode: accessCode.toUpperCase(),
+      accessCode: normalizedCode,
     },
   })
 
@@ -20,6 +23,8 @@ export default async function PublicSessionPage({
 
   return (
     <div className="min-h-screen bg-[#0e1d38] text-white flex flex-col items-center justify-center px-6">
+
+      <SessionClient accessCode={normalizedCode} initialIsActive={session.isActive} />
 
       <div className="max-w-2xl w-full bg-[#142544] p-10 rounded-2xl shadow-2xl border border-white/10 text-center">
 
@@ -32,17 +37,6 @@ export default async function PublicSessionPage({
             {session.description}
           </p>
         )}
-
-        {!session.isActive ? (
-          <div className="text-white/50 text-sm">
-            Esperando a que el profesor inicie la sesión...
-          </div>
-        ) : (
-          <div className="text-green-400 font-semibold">
-            La sesión ha comenzado 🎉
-          </div>
-        )}
-
       </div>
     </div>
   )

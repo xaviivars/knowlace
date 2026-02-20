@@ -21,3 +21,4 @@ Su desarrollo se centra en el diseño e implementación técnica de una arquitec
 - BetterAuth
 - Google OAuth 2.0
 - TailwindCSS
+- Socket.io
