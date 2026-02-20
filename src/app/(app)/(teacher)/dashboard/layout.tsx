@@ -16,7 +16,7 @@ export default function DashboardLayout({
         <h2 className="text-2xl font-bold mb-8">Knowlace.</h2>
 
         <nav className="flex flex-col gap-4">
-            <SidebarItem href="/dashboard" icon={SquaresPlusIcon}>
+            <SidebarItem href="/dashboard/sessions/new" icon={SquaresPlusIcon}>
                 Crear una sesión
             </SidebarItem>
 

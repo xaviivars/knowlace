@@ -22,6 +22,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  teachingSessions TeachingSession[]
 
   @@unique([email])
   @@map("user")
@@ -73,4 +74,18 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model TeachingSession {
+  id         String   @id @default(cuid())
+  title      String
+  description String?
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  accessCode String   @unique
+  isActive   Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
