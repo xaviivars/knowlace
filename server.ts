@@ -1,4 +1,3 @@
-// server.ts
 import { createServer } from "http"
 import next from "next"
 import { Server } from "socket.io"
@@ -50,6 +49,9 @@ app.prepare().then(() => {
             const count = roomData ? roomData.size - 1 : 0
 
             io.to(room).emit("participants-count", count)
+            
+            console.log("COUNT CALCULADO:", count)
+
         }
         })
     })
