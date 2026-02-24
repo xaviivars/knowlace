@@ -23,11 +23,11 @@ export default function Join () {
                 Knowlace.
             </h1>
 
-            <div className="flex flex-row max-w-120">
+            <div className="flex flex-row gap-12 max-w-150">
                 <Input 
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="bg-white/10 border border-white/20 w-80 text-center uppercase tracking-widest"
+                    className="bg-white/10 border border-white/20 w-100 text-center uppercase tracking-widest"
                     placeholder="Introduce un código de sesión"
                 />
 

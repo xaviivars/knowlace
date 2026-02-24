@@ -52,3 +52,40 @@ export async function toggleSession(sessionId: string) {
 
   return updated
 }
+
+export async function joinSession(accessCode: string, name: string) {
+  if (!name || name.trim().length < 2) {
+    throw new Error("Nombre inválido")
+  }
+
+  const session = await prisma.teachingSession.findUnique({
+    where: { accessCode: accessCode.toUpperCase() },
+  })
+
+  if (!session) {
+    throw new Error("Sesión no encontrada")
+  }
+
+  const existing = await prisma.participant.findFirst({
+    where: {
+      sessionId: session.id,
+      name: name.trim(),
+    },
+  })
+
+  if (existing) {
+    throw new Error("Nombre ya en uso")
+  }
+
+  const participant = await prisma.participant.create({
+    data: {
+      name: name.trim(),
+      sessionId: session.id,
+    },
+  })
+
+  return {
+    participantId: participant.id,
+    sessionId: session.id,
+  }
+}

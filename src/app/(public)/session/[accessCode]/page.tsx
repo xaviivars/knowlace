@@ -5,7 +5,7 @@ import SessionClient from "./SessionClient"
 export default async function PublicSessionPage({
   params,
 }: {
-  params: Promise<{ accessCode: string }>
+  params: Promise <{ accessCode: string }>
 }) {
   const { accessCode } = await params
 
@@ -21,10 +21,15 @@ export default async function PublicSessionPage({
     notFound()
   }
 
+  const participants = await prisma.participant.findMany({
+    where: { sessionId: session.id },
+    orderBy: { createdAt: "asc" }
+  })
+
   return (
     <div className="min-h-screen bg-[#0e1d38] text-white flex flex-col items-center justify-center px-6">
 
-      <SessionClient accessCode={normalizedCode} initialIsActive={session.isActive} />
+      <SessionClient accessCode={normalizedCode} initialIsActive={session.isActive} initialParticipants={participants} />
 
       <div className="max-w-2xl w-full bg-[#142544] p-10 rounded-2xl shadow-2xl border border-white/10 text-center">
 

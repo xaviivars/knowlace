@@ -1,6 +1,8 @@
+import "dotenv/config"
 import { createServer } from "http"
 import next from "next"
 import { Server } from "socket.io"
+import { prisma } from "@/lib/prisma"
 
 const dev = process.env.NODE_ENV !== "production"
 const hostname = "localhost"
@@ -62,6 +64,25 @@ app.prepare().then(() => {
 
     socket.on("end-session", (accessCode: string) => {
         io.to(accessCode).emit("session-ended")
+    })
+
+    socket.on("viewer-join", (accessCode: string) => {
+      socket.join(accessCode)
+    })
+
+    socket.on("participant-joined", async (accessCode: string) => {
+      const session = await prisma.teachingSession.findUnique({
+        where: { accessCode },
+      })
+
+      if (!session) return
+
+      const participants = await prisma.participant.findMany({
+        where: { sessionId: session.id },
+        orderBy: { createdAt: "asc" },
+      })
+
+      io.to(accessCode).emit("participants-list", participants)
     })
 
     })
