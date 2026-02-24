@@ -22,7 +22,7 @@ export default async function PublicSessionPage({
   }
 
   const participants = await prisma.participant.findMany({
-    where: { sessionId: session.id },
+    where: { sessionId: session.id, isActive: true },
     orderBy: { createdAt: "asc" }
   })
 

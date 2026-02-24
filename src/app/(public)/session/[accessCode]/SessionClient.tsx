@@ -1,8 +1,10 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getSocket } from "@/lib/socket"
-import { joinSession } from "@/lib/actions/session-actions"
+import { joinSession, reconnectParticipant, leaveParticipant } from "@/lib/actions/session-actions"
+import { useRef } from "react"
 
 type Participant = {
   id: string
@@ -23,50 +25,106 @@ export default function SessionClient({
   const [name, setName] = useState("")
   const [joined, setJoined] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const participantIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-  const socket = getSocket()
 
-  if (socket.connected) {
-      socket.emit("viewer-join", accessCode)
-  } else {
-    socket.on("connect", () => {
-      socket.emit("viewer-join", accessCode)
+    // Commented for dev
+    /*
+    const stored = localStorage.getItem("knowlace_participant")
+
+    if (stored) {
+      const parsed = JSON.parse(stored)
+
+      if (parsed.accessCode === accessCode) {
+        reconnectParticipant(parsed.participantId).then((participant) => {
+          if (participant) {
+            setName(parsed.name)
+            setJoined(true)
+
+            const socket = getSocket()
+            socket.emit("participant-joined", accessCode, parsed.participantId)
+          }
+        })
+      }
+    }
+    */
+
+    const socket = getSocket()
+
+    if (socket.connected) {
+        socket.emit("viewer-join", accessCode)
+    } else {
+      socket.on("connect", () => {
+        socket.emit("viewer-join", accessCode)
+      })
+    }
+
+    socket.on("participants-list", (list: Participant[]) => {
+        setParticipants(list)
+      })
+
+    socket.on("session-started", () => {
+      setIsActive(true)
     })
-  }
 
-  socket.on("participants-list", (list: Participant[]) => {
-      setParticipants(list)
+    socket.on("session-ended", () => {
+      setIsActive(false)
     })
 
-  socket.on("session-started", () => {
-    setIsActive(true)
-  })
-
-  socket.on("session-ended", () => {
-    setIsActive(false)
-  })
-
-  return () => {
-    socket.off("participants-list")
-    socket.off("session-started")
-    socket.off("session-ended")
-  }
-    }, [accessCode])
+    return () => {
+      socket.off("participants-list")
+      socket.off("session-started")
+      socket.off("session-ended")
+      socket.off("connect")
+    }
+  }, [accessCode])
 
   const handleJoin = async () => {
     try {
       setError(null)
 
-      await joinSession(accessCode, name)
+      const result = await joinSession(accessCode, name)
 
+      // Commented for dev
+      /*
+      localStorage.setItem(
+        "knowlace_participant",
+        JSON.stringify({
+          participantId: result.participantId,
+          accessCode,
+          name,
+        })
+      )
+      */
+      
       const socket = getSocket()
-      socket.emit("participant-joined", accessCode)
+
+      socket.emit("participant-joined", accessCode, result.participantId)
+
+      participantIdRef.current = result.participantId
 
       setJoined(true)
     } catch (err: any) {
       setError(err.message)
     }
+  }
+
+  const handleLeave = async () => {
+    // Como estamos en dev, no usamos storage
+    // Necesitamos saber el participantId desde el socket
+    if (!participantIdRef.current) return
+
+    await leaveParticipant(participantIdRef.current)
+
+    const socket = getSocket()
+    
+    socket.emit("participant-left", accessCode)
+
+    participantIdRef.current = null
+    setName("")
+    setJoined(false)
   }
 
   return (
@@ -116,6 +174,15 @@ export default function SessionClient({
         <div className="text-green-400 font-semibold">
           La sesión ha comenzado 🎉
         </div>
+      )}
+
+      {joined && (
+        <button
+          onClick={handleLeave}
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
+        >
+          Salir
+        </button>
       )}
     </div>
   )

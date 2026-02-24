@@ -97,7 +97,12 @@ model Participant {
   name        String
   sessionId   String
   session     TeachingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+   
   score       Int      @default(0)
+
+  isActive    Boolean  @default(true)
+  lastSeen    DateTime @default(now()) @updatedAt
+
   createdAt   DateTime @default(now())
 
   @@index([sessionId])

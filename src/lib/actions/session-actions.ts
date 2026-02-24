@@ -66,21 +66,36 @@ export async function joinSession(accessCode: string, name: string) {
     throw new Error("Sesión no encontrada")
   }
 
+  const trimmedName = name.trim()
+
   const existing = await prisma.participant.findFirst({
     where: {
       sessionId: session.id,
-      name: name.trim(),
+      name: trimmedName,
     },
   })
 
   if (existing) {
-    throw new Error("Nombre ya en uso")
+    if (!existing.isActive) {
+      await prisma.participant.update({
+        where: { id: existing.id },
+        data: { isActive: true },
+      })
+    } else {
+      throw new Error("Nombre ya en uso")
+    }
+
+    return {
+      participantId: existing.id,
+      sessionId: session.id,
+    }
   }
 
   const participant = await prisma.participant.create({
     data: {
-      name: name.trim(),
+      name: trimmedName,
       sessionId: session.id,
+      isActive: true
     },
   })
 
@@ -88,4 +103,31 @@ export async function joinSession(accessCode: string, name: string) {
     participantId: participant.id,
     sessionId: session.id,
   }
+}
+
+export async function reconnectParticipant(participantId: string) {
+  const participant = await prisma.participant.findUnique({
+    where: { id: participantId },
+  })
+
+  if (!participant) return null
+
+  await prisma.participant.update({
+    where: { id: participantId },
+    data: {
+      isActive: true,
+      lastSeen: new Date(),
+    },
+  })
+
+  return participant
+}
+
+export async function leaveParticipant(participantId: string) {
+  await prisma.participant.update({
+    where: { id: participantId },
+    data: { isActive: false },
+  })
+
+  return { success: true }
 }

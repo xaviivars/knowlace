@@ -70,7 +70,41 @@ app.prepare().then(() => {
       socket.join(accessCode)
     })
 
-    socket.on("participant-joined", async (accessCode: string) => {
+    socket.on("participant-joined", async (accessCode: string, participantId: string) => {
+      socket.data.participantId = participantId
+      socket.data.accessCode = accessCode
+
+      const session = await prisma.teachingSession.findUnique({
+        where: { accessCode },
+      })
+
+      if (!session) return
+
+      await prisma.participant.update({
+              where: { id: participantId },
+              data: { lastSeen: new Date() },
+      })
+        
+      const participants = await prisma.participant.findMany({
+        where: { sessionId: session.id, isActive: true},
+        orderBy: { createdAt: "asc" },
+      })
+
+      socket.join(accessCode)
+      io.to(accessCode).emit("participants-list", participants)
+    })
+
+    socket.on("disconnect", async () => {
+      const participantId = socket.data.participantId
+      const accessCode = socket.data.accessCode
+
+      if (!participantId || !accessCode) return
+
+      await prisma.participant.update({
+        where: { id: participantId },
+        data: { isActive: false },
+      })
+
       const session = await prisma.teachingSession.findUnique({
         where: { accessCode },
       })
@@ -78,9 +112,53 @@ app.prepare().then(() => {
       if (!session) return
 
       const participants = await prisma.participant.findMany({
-        where: { sessionId: session.id },
+        where: {
+          sessionId: session.id,
+          isActive: true,
+        },
         orderBy: { createdAt: "asc" },
       })
+
+        const activeCount = await prisma.participant.count({
+          where: {
+            sessionId: session.id,
+            isActive: true
+          }
+        })
+      
+        if (activeCount === 0) {
+          await prisma.teachingSession.update({
+            where: { id: session.id },
+            data: { isActive: false }
+          })
+        }
+
+      io.to(accessCode).emit("participants-list", participants)
+    })
+
+    socket.on("participant-left", async (accessCode: string) => {
+      const session = await prisma.teachingSession.findUnique({
+        where: { accessCode },
+      })
+
+      if (!session) return
+
+      const participants = await prisma.participant.findMany({
+        where: {
+          sessionId: session.id,
+          isActive: true,
+        },
+        orderBy: { createdAt: "asc" },
+      })
+
+      const activeCount = participants.length
+
+      if (activeCount === 0) {
+        await prisma.teachingSession.update({
+          where: { id: session.id },
+          data: { isActive: false },
+        })
+      }
 
       io.to(accessCode).emit("participants-list", participants)
     })
