@@ -5,6 +5,9 @@ import { useEffect, useState } from "react"
 import { getSocket } from "@/lib/socket"
 import { joinSession, reconnectParticipant, leaveParticipant } from "@/lib/actions/session-actions"
 import { useRef } from "react"
+import PresentationArea from "@/components/session/PresentationArea"
+import Sidebar from "@/components/session/Sidebar"
+import Link from "next/link"
 
 type Participant = {
   id: string
@@ -12,10 +15,12 @@ type Participant = {
 }
 
 export default function SessionClient({
+  sessionTitle,
   accessCode,
   initialIsActive,
   initialParticipants
 }: {
+  sessionTitle: string
   accessCode: string
   initialIsActive: boolean
   initialParticipants: Participant[]
@@ -127,63 +132,52 @@ export default function SessionClient({
     setJoined(false)
   }
 
+  const handleGoHome = async () => {
+    if (participantIdRef.current) {
+      await leaveParticipant(participantIdRef.current)
+
+      const socket = getSocket()
+      socket.emit("participant-left", accessCode)
+
+      participantIdRef.current = null
+    }
+
+    router.push("/")
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-screen w-screen bg-[#0e1d38] text-white">
 
-      <div>
-        <h2 className="text-lg font-semibold mb-2">
-          Participantes ({participants.length})
-        </h2>
-
-        <ul className="space-y-1 text-white/80">
-          {participants.map((p) => (
-            <li key={p.id}>• {p.name}</li>
-          ))}
-        </ul>
-      </div>
-
-      {!joined && (
-        <div className="space-y-3">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Tu nombre"
-            className="px-4 py-2 rounded bg-white/10 border border-white/20"
-          />
-
-          <button
-            onClick={handleJoin}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
-          >
-            Unirse
+      <header className="w-full h-18 border-b border-white/30 bg-[#0e1d38]">
+        <div className="max-w-6xl px-6 h-full flex items-center">
+          <button onClick={handleGoHome}>
+            <h1 className="text-2xl font-bold text-white cursor-pointer">
+              Knowlace.
+            </h1>
           </button>
-
-          {error && (
-            <div className="text-red-400 text-sm">{error}</div>
-          )}
         </div>
-      )}
+      </header>
 
-      {joined && !isActive && (
-        <div className="text-white/50">
-          Esperando a que el profesor inicie la sesión...
-        </div>
-      )}
+      <div className="flex flex-1 overflow-hidden">
 
-      {joined && isActive && (
-        <div className="text-green-400 font-semibold">
-          La sesión ha comenzado 🎉
-        </div>
-      )}
+        <PresentationArea
+          joined={joined}
+          isActive={isActive}
+          name={name}
+          setName={setName}
+          error={error}
+          onJoin={handleJoin}
+        />
 
-      {joined && (
-        <button
-          onClick={handleLeave}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
-        >
-          Salir
-        </button>
-      )}
+        <Sidebar
+          sessionTitle={sessionTitle}
+          participants={participants}
+          joined={joined}
+          isActive={isActive}
+          onLeave={handleLeave}
+        />
+
+      </div>
     </div>
   )
 }

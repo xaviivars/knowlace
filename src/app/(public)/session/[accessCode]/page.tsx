@@ -29,20 +29,8 @@ export default async function PublicSessionPage({
   return (
     <div className="min-h-screen bg-[#0e1d38] text-white flex flex-col items-center justify-center px-6">
 
-      <SessionClient accessCode={normalizedCode} initialIsActive={session.isActive} initialParticipants={participants} />
+      <SessionClient accessCode={normalizedCode} initialIsActive={session.isActive} initialParticipants={participants} sessionTitle={session.title} />
 
-      <div className="max-w-2xl w-full bg-[#142544] p-10 rounded-2xl shadow-2xl border border-white/10 text-center">
-
-        <h1 className="text-4xl font-bold mb-4">
-          {session.title}
-        </h1>
-
-        {session.description && (
-          <p className="text-white/70 mb-8">
-            {session.description}
-          </p>
-        )}
-      </div>
     </div>
   )
 }
