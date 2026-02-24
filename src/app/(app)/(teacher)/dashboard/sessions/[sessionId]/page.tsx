@@ -20,13 +20,11 @@ export default async function SessionPage({
     <div>
       <h1>{session.title}</h1>
       <h1>{session.description}</h1>
-
-      {!session.isActive && (
       <SessionControls
         sessionId={session.id}
         accessCode={session.accessCode}
+        initialIsActive={session.isActive}
       />
-    )}
     </div>
   )
 }

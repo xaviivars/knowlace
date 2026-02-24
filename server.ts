@@ -59,6 +59,11 @@ app.prepare().then(() => {
     socket.on("start-session", (accessCode: string) => {
         io.to(accessCode).emit("session-started")
     })
+
+    socket.on("end-session", (accessCode: string) => {
+        io.to(accessCode).emit("session-ended")
+    })
+
     })
 
   httpServer.listen(port, () => {

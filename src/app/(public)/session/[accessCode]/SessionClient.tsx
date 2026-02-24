@@ -30,6 +30,10 @@ export default function SessionClient({
     setIsActive(true)
   })
 
+  socket.on("session-ended", () => {
+    setIsActive(false)
+  })
+
   socket.on("participants-count", (count: number) => {
     console.log("Nuevo count:", count)
     setParticipants(count)
@@ -39,6 +43,7 @@ export default function SessionClient({
     socket.off("connect", handleConnect)
     socket.off("session-started")
     socket.off("participants-count")
+    socket.off("session-ended")
   }
     }, [accessCode])
 

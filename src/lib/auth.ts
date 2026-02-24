@@ -17,5 +17,3 @@ export const auth = betterAuth ({
     },
     plugins: [nextCookies()]
 })
-
-console.log("DATABASE_URL:", process.env.DATABASE_URL)

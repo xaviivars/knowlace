@@ -28,7 +28,7 @@ export async function createSession(title: string, description?: string) {
   return newSession
 }
 
-export async function startSession(sessionId: string) {
+export async function toggleSession(sessionId: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -47,7 +47,7 @@ export async function startSession(sessionId: string) {
 
   const updated = await prisma.teachingSession.update({
     where: { id: sessionId },
-    data: { isActive: true },
+    data: { isActive: !existing.isActive },
   })
 
   return updated
