@@ -13,6 +13,10 @@ type Props = {
   setName: (value: string) => void
   error: string | null
   onJoin: () => void
+
+  accessCode: string
+  pageNumber: number
+  onPageChange: (page: number) => void
 }
 
 export default function PresentationArea({
@@ -21,7 +25,11 @@ export default function PresentationArea({
   name,
   setName,
   error,
-  onJoin
+  onJoin,
+
+  accessCode,
+  pageNumber,
+  onPageChange,
 }: Props) {
 
   // No unido
@@ -76,7 +84,12 @@ export default function PresentationArea({
   // Sesión activa → Mostrar PDF
   return (
     <div className="flex-1 bg-[#0b162c]">
-      <PdfViewer />
+      <PdfViewer
+        accessCode={accessCode}
+        pageNumber={pageNumber}
+        onPageChange={onPageChange}
+        isOwner={false}
+      />
     </div>
   )
 }

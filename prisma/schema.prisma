@@ -89,6 +89,8 @@ model TeachingSession {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  currentPage Int @default(1)
+
   participants Participant[]
 }
 

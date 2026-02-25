@@ -163,6 +163,21 @@ app.prepare().then(() => {
       io.to(accessCode).emit("participants-list", participants)
     })
 
+    socket.on("page-changed", async (accessCode: string, newPage: number) => {
+      const session = await prisma.teachingSession.findUnique({
+        where: { accessCode },
+      })
+
+      if (!session) return
+
+      await prisma.teachingSession.update({
+        where: { id: session.id },
+        data: { currentPage: newPage },
+      })
+
+      io.to(accessCode).emit("page-updated", newPage)
+    })
+
     })
 
   httpServer.listen(port, () => {

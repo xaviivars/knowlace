@@ -18,12 +18,14 @@ export default function SessionClient({
   sessionTitle,
   accessCode,
   initialIsActive,
-  initialParticipants
+  initialParticipants,
+  initialPage
 }: {
   sessionTitle: string
   accessCode: string
   initialIsActive: boolean
   initialParticipants: Participant[]
+  initialPage: number
 }) {
   const [isActive, setIsActive] = useState(initialIsActive)
   const [participants, setParticipants] = useState(initialParticipants)
@@ -32,6 +34,7 @@ export default function SessionClient({
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const participantIdRef = useRef<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(initialPage)
 
   useEffect(() => {
 
@@ -78,11 +81,16 @@ export default function SessionClient({
       setIsActive(false)
     })
 
+    socket.on("page-updated", (newPage: number) => {
+      setCurrentPage(newPage)
+    })
+
     return () => {
       socket.off("participants-list")
       socket.off("session-started")
       socket.off("session-ended")
       socket.off("connect")
+      socket.off("page-updated")
     }
   }, [accessCode])
 
@@ -145,6 +153,8 @@ export default function SessionClient({
     router.push("/")
   }
 
+  const handlePageChange = () => {}
+
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0e1d38] text-white">
 
@@ -167,6 +177,10 @@ export default function SessionClient({
           setName={setName}
           error={error}
           onJoin={handleJoin}
+
+          accessCode={accessCode}
+          pageNumber={currentPage}
+          onPageChange={handlePageChange}
         />
 
         <Sidebar
