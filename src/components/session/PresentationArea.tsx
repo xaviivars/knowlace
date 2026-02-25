@@ -1,6 +1,10 @@
 "use client"
 
-import PdfViewer from "./PdfViewer"
+import dynamic from "next/dynamic"
+
+const PdfViewer = dynamic(() => import("./PdfViewer"), {
+  ssr: false,
+})
 
 type Props = {
   joined: boolean
