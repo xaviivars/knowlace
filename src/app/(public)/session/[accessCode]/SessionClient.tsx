@@ -34,7 +34,9 @@ export default function SessionClient({
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const participantIdRef = useRef<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(initialPage)
+  const [teacherPage, setTeacherPage] = useState(initialPage)
+  const [localPage, setLocalPage] = useState(initialPage)
+  const [isFollowingTeacher, setIsFollowingTeacher] = useState(true)
 
   useEffect(() => {
 
@@ -82,7 +84,11 @@ export default function SessionClient({
     })
 
     socket.on("page-updated", (newPage: number) => {
-      setCurrentPage(newPage)
+      setTeacherPage(newPage)
+
+      if (isFollowingTeacher) {
+        setLocalPage(newPage)
+      }
     })
 
     return () => {
@@ -92,7 +98,13 @@ export default function SessionClient({
       socket.off("connect")
       socket.off("page-updated")
     }
-  }, [accessCode])
+  }, [accessCode, isFollowingTeacher])
+
+  useEffect(() => {
+    if (localPage === teacherPage) {
+      setIsFollowingTeacher(true)
+    }
+  }, [localPage, teacherPage])
 
   const handleJoin = async () => {
     try {
@@ -153,7 +165,10 @@ export default function SessionClient({
     router.push("/")
   }
 
-  const handlePageChange = () => {}
+  const handlePageChange = (newPage: number) => {
+    setLocalPage(newPage)
+    setIsFollowingTeacher(false)
+  }
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0e1d38] text-white">
@@ -170,6 +185,23 @@ export default function SessionClient({
 
       <div className="flex flex-1 overflow-hidden">
 
+        {!isFollowingTeacher && (
+          <div className="absolute top-20 left-6 bg-yellow-500 text-black px-4 py-2 rounded shadow-lg z-20">
+            <span className="mr-3">
+              Profesor está en página {teacherPage}
+            </span>
+            <button
+              onClick={() => {
+                setLocalPage(teacherPage)
+                setIsFollowingTeacher(true)
+              }}
+              className="bg-black text-white px-3 py-1 rounded"
+            >
+              Seguir al profesor
+            </button>
+          </div>
+        )}
+
         <PresentationArea
           joined={joined}
           isActive={isActive}
@@ -179,7 +211,7 @@ export default function SessionClient({
           onJoin={handleJoin}
 
           accessCode={accessCode}
-          pageNumber={currentPage}
+          pageNumber={localPage}
           onPageChange={handlePageChange}
         />
 

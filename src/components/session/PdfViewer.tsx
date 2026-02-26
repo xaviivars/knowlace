@@ -42,7 +42,6 @@ export default function PdfViewer({
   return (
     <div className="relative w-full h-full bg-[#0b162c] flex flex-col items-center">
 
-      {isOwner && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 px-4 py-2 rounded flex gap-4 items-center z-10">
           <button
             onClick={handlePrev}
@@ -62,7 +61,6 @@ export default function PdfViewer({
             ▶
           </button>
         </div>
-      )}
 
       <div className="flex-1 flex items-center justify-center w-full overflow-auto">
         <Document
