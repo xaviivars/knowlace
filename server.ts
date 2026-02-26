@@ -119,20 +119,6 @@ app.prepare().then(() => {
         orderBy: { createdAt: "asc" },
       })
 
-        const activeCount = await prisma.participant.count({
-          where: {
-            sessionId: session.id,
-            isActive: true
-          }
-        })
-      
-        if (activeCount === 0) {
-          await prisma.teachingSession.update({
-            where: { id: session.id },
-            data: { isActive: false }
-          })
-        }
-
       io.to(accessCode).emit("participants-list", participants)
     })
 
@@ -150,15 +136,6 @@ app.prepare().then(() => {
         },
         orderBy: { createdAt: "asc" },
       })
-
-      const activeCount = participants.length
-
-      if (activeCount === 0) {
-        await prisma.teachingSession.update({
-          where: { id: session.id },
-          data: { isActive: false },
-        })
-      }
 
       io.to(accessCode).emit("participants-list", participants)
     })
