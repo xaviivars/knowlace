@@ -25,9 +25,9 @@ export default function SessionControls({
       const socket = getSocket()
       
       if (updated.isActive) {
-        socket.emit("start-session", accessCode)
+        socket.emit("start-session")
       } else {
-        socket.emit("end-session", accessCode)
+        socket.emit("end-session")
       }
 
       setIsActive(updated.isActive)

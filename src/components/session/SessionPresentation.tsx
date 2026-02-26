@@ -9,38 +9,33 @@ const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false })
 export default function SessionPresentation({
   accessCode,
   initialPage,
-  isOwner,
 }: {
   accessCode: string
   initialPage: number
-  isOwner: boolean
 }) {
 
   const [pageNumber, setPageNumber] = useState(initialPage)
 
     useEffect(() => {
-    const socket = getSocket()
+      const socket = getSocket()
 
-    socket.emit("viewer-join", accessCode)
+      socket.emit("owner-join", accessCode)
 
-    socket.on("page-updated", (newPage: number) => {
+      socket.on("page-updated", (newPage: number) => {
         setPageNumber(newPage)
-    })
+      })
 
-    return () => {
+      return () => {
         socket.off("page-updated")
-    }
+      }
     }, [accessCode])
 
     const handlePageChange = (newPage: number) => {
-    setPageNumber(newPage)
+      setPageNumber(newPage)
 
-    if (isOwner) {
-        const socket = getSocket()
-        socket.emit("page-changed", accessCode, newPage)
+    const socket = getSocket()
+        socket.emit("page-changed", newPage)
     }
-
-  }
 
   return (
     <div className="flex-1 bg-[#0b162c]">
@@ -48,7 +43,7 @@ export default function SessionPresentation({
         accessCode={accessCode}
         pageNumber={pageNumber}
         onPageChange={handlePageChange}
-        isOwner={isOwner}
+        isOwner={true}
       />
     </div>
   )

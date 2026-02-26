@@ -36,7 +36,7 @@ export default function SessionClient({
   const participantIdRef = useRef<string | null>(null)
   const [teacherPage, setTeacherPage] = useState(initialPage)
   const [localPage, setLocalPage] = useState(initialPage)
-  const [isFollowingTeacher, setIsFollowingTeacher] = useState(true)
+  const isFollowingTeacher = localPage === teacherPage
 
   useEffect(() => {
 
@@ -84,11 +84,16 @@ export default function SessionClient({
     })
 
     socket.on("page-updated", (newPage: number) => {
-      setTeacherPage(newPage)
+      setTeacherPage(prevTeacher => {
+        setLocalPage(prevLocal => {
+          if (prevLocal === prevTeacher) {
+            return newPage
+          }
+          return prevLocal
+        })
 
-      if (isFollowingTeacher) {
-        setLocalPage(newPage)
-      }
+        return newPage
+      })
     })
 
     return () => {
@@ -98,13 +103,7 @@ export default function SessionClient({
       socket.off("connect")
       socket.off("page-updated")
     }
-  }, [accessCode, isFollowingTeacher])
-
-  useEffect(() => {
-    if (localPage === teacherPage) {
-      setIsFollowingTeacher(true)
-    }
-  }, [localPage, teacherPage])
+  }, [accessCode])  
 
   const handleJoin = async () => {
     try {
@@ -167,7 +166,6 @@ export default function SessionClient({
 
   const handlePageChange = (newPage: number) => {
     setLocalPage(newPage)
-    setIsFollowingTeacher(false)
   }
 
   return (
@@ -193,7 +191,6 @@ export default function SessionClient({
             <button
               onClick={() => {
                 setLocalPage(teacherPage)
-                setIsFollowingTeacher(true)
               }}
               className="bg-black text-white px-3 py-1 rounded"
             >

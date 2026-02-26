@@ -58,16 +58,47 @@ app.prepare().then(() => {
         })
     })
 
-    socket.on("start-session", (accessCode: string) => {
-        io.to(accessCode).emit("session-started")
+    socket.on("owner-join", async (accessCode: string) => {
+      const session = await prisma.teachingSession.findUnique({
+        where: { accessCode },
+      })
+
+      if (!session) return
+
+      socket.join(accessCode)
+      socket.data.accessCode = accessCode
+      socket.data.isOwner = true
     })
 
-    socket.on("end-session", (accessCode: string) => {
-        io.to(accessCode).emit("session-ended")
+    socket.on("start-session", async () => {
+      const accessCode = socket.data.accessCode
+      if (!accessCode) return
+      if (!socket.data.isOwner) return
+
+      await prisma.teachingSession.update({
+        where: { accessCode },
+        data: { isActive: true },
+      })
+
+      io.to(accessCode).emit("session-started")
+    })
+
+    socket.on("end-session", async () => {
+      const accessCode = socket.data.accessCode
+      if (!accessCode) return
+      if (!socket.data.isOwner) return
+
+      await prisma.teachingSession.update({
+        where: { accessCode },
+        data: { isActive: false },
+      })
+
+      io.to(accessCode).emit("session-ended")
     })
 
     socket.on("viewer-join", (accessCode: string) => {
       socket.join(accessCode)
+      socket.data.accessCode = accessCode
     })
 
     socket.on("participant-joined", async (accessCode: string, participantId: string) => {
@@ -122,7 +153,17 @@ app.prepare().then(() => {
       io.to(accessCode).emit("participants-list", participants)
     })
 
-    socket.on("participant-left", async (accessCode: string) => {
+    socket.on("participant-left", async () => {
+      const accessCode = socket.data.accessCode
+      const participantId = socket.data.participantId
+
+      if (!accessCode || !participantId) return
+
+      await prisma.participant.update({
+        where: { id: participantId },
+        data: { isActive: false },
+      })
+
       const session = await prisma.teachingSession.findUnique({
         where: { accessCode },
       })
@@ -140,22 +181,23 @@ app.prepare().then(() => {
       io.to(accessCode).emit("participants-list", participants)
     })
 
-    socket.on("page-changed", async (accessCode: string, newPage: number) => {
-      const session = await prisma.teachingSession.findUnique({
-        where: { accessCode },
-      })
+    socket.on("page-changed", async (newPage: number) => {
+      const accessCode = socket.data.accessCode
 
-      if (!session) return
+      if (!accessCode) return
+      if (!socket.data.isOwner) return
+      if (typeof newPage !== "number") return
+      if (newPage < 1) return
 
       await prisma.teachingSession.update({
-        where: { id: session.id },
+        where: { accessCode },
         data: { currentPage: newPage },
       })
 
       io.to(accessCode).emit("page-updated", newPage)
     })
 
-    })
+  })
 
   httpServer.listen(port, () => {
     console.log(`> Server ready on http://${hostname}:${port}`)
