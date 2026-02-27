@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import SessionControls from "@/components/session/SessionControls"
-import SessionPresentation from "@/components/session/SessionPresentation"
+import SessionControls from "@/components/session/teacher/SessionControls"
+import OwnerSessionPresentation from "@/components/session/teacher/OwnerSessionPresentation"
 
 export default async function SessionPage({
   params,
@@ -26,7 +26,7 @@ export default async function SessionPage({
         accessCode={session.accessCode}
         initialIsActive={session.isActive}
       />
-      <SessionPresentation
+      <OwnerSessionPresentation
         accessCode={session.accessCode}
         initialPage={session.currentPage}
         isOwner={true}

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { getSocket } from "@/lib/socket"
 import { joinSession, reconnectParticipant, leaveParticipant } from "@/lib/actions/session-actions"
 import { useRef } from "react"
-import PresentationArea from "@/components/session/PresentationArea"
+import PresentationArea from "@/components/session/student/PresentationArea"
 import Sidebar from "@/components/session/Sidebar"
 import Link from "next/link"
 

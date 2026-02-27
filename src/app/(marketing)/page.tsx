@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import LightRays from '@/components/LightRays';
+import LightRays from '@/components/landing/LightRays';
 import { HeroCTA } from '@/components/landing/HeroCTA';
 import FeatureCard from "@/components/landing/FeatureCard";
 import { BoltIcon, ClockIcon, EyeIcon, XMarkIcon } from "@heroicons/react/24/outline";

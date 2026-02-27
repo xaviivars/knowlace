@@ -4,14 +4,16 @@ import { getSocket } from "@/lib/socket"
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
 
-const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false })
+const PdfViewer = dynamic(() => import("../PdfViewer"), { ssr: false })
 
-export default function SessionPresentation({
+export default function OwnerSessionPresentation({
   accessCode,
   initialPage,
+  isOwner,
 }: {
   accessCode: string
   initialPage: number
+  isOwner: boolean
 }) {
 
   const [pageNumber, setPageNumber] = useState(initialPage)
