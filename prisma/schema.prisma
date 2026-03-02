@@ -92,6 +92,7 @@ model TeachingSession {
   currentPage Int @default(1)
 
   participants Participant[]
+  questions Question[]
 }
 
 model Participant {
@@ -108,4 +109,34 @@ model Participant {
   createdAt   DateTime @default(now())
 
   @@index([sessionId])
+}
+
+model Question {
+  id          String        @id @default(cuid())
+  sessionId   String
+  type        QuestionType
+  content     String
+  order       Int
+  timeLimit   Int?          
+  createdAt   DateTime      @default(now())
+
+  session     TeachingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  options     Option[]
+
+  @@unique([sessionId, order])
+}
+
+model Option {
+  id          String   @id @default(cuid())
+  questionId  String
+  content     String
+  isCorrect   Boolean
+
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
 }
