@@ -11,6 +11,13 @@ export default async function SessionPage({
 
   const session = await prisma.teachingSession.findUnique({
     where: { id: sessionId },
+    include: {
+      questions: {
+        include: {
+          options: true
+        }
+      }
+    }
   })
 
   if (!session) {
@@ -30,6 +37,7 @@ export default async function SessionPage({
         accessCode={session.accessCode}
         initialPage={session.currentPage}
         isOwner={true}
+        questions={session.questions}
       />
     </div>
   )

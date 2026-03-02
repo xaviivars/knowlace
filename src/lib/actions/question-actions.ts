@@ -4,6 +4,16 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 
+type CreateQuestionInput = {
+  sessionId: string
+  content: string
+  pageNumber: number
+  options: {
+    content: string
+    isCorrect: boolean
+  }[]
+}
+
 async function assertOwner(sessionId: string) {
   const sessionAuth = await auth.api.getSession({
     headers: await headers(),
@@ -24,52 +34,48 @@ async function assertOwner(sessionId: string) {
   return session
 }
 
-export async function createQuestionAction(params: {
-  sessionId: string
-  content: string
-  options: { content: string; isCorrect: boolean }[]
-}) {
-  const { sessionId, content, options } = params
+export async function createQuestionAction({
+  sessionId,
+  content,
+  pageNumber,
+  options,
+}: CreateQuestionInput) {
 
-  await assertOwner(sessionId)
-
-  if (!content || content.trim().length < 5) {
-    throw new Error("Contenido inválido")
+  if (!content.trim()) {
+    throw new Error("La pregunta no puede estar vacía")
   }
 
-  if (!options || options.length < 2) {
-    throw new Error("Debe haber al menos 2 opciones")
+  if (pageNumber < 1) {
+    throw new Error("Número de página inválido")
   }
 
-  const correctCount = options.filter(o => o.isCorrect).length
-  if (correctCount !== 1) {
-    throw new Error("Debe haber exactamente una opción correcta")
+  if (!options.some((o) => o.isCorrect)) {
+    throw new Error("Debe haber una opción correcta")
   }
 
-  const lastQuestion = await prisma.question.findFirst({
-    where: { sessionId },
-    orderBy: { order: "desc" },
-  })
-
-  const nextOrder = lastQuestion ? lastQuestion.order + 1 : 1
-
-  return prisma.question.create({
-    data: {
-      sessionId,
-      type: "MULTIPLE_CHOICE",
-      content: content.trim(),
-      order: nextOrder,
-      options: {
-        create: options.map(o => ({
-          content: o.content.trim(),
-          isCorrect: o.isCorrect,
-        })),
+  try {
+    return await prisma.question.create({
+      data: {
+        sessionId,
+        content,
+        pageNumber,
+        type: "MULTIPLE_CHOICE",
+        options: {
+          create: options.map((opt) => ({
+            content: opt.content,
+            isCorrect: opt.isCorrect,
+          })),
+        },
       },
-    },
-    include: {
-      options: true,
-    },
-  })
+    })
+  } catch (error: any) {
+
+    if (error.code === "P2002") {
+      throw new Error("Ya existe una pregunta para esa página")
+    }
+
+    throw new Error("No se pudo crear la pregunta")
+  }
 }
 
 export async function getQuestionsBySessionAction(sessionId: string) {
@@ -77,7 +83,7 @@ export async function getQuestionsBySessionAction(sessionId: string) {
 
   return prisma.question.findMany({
     where: { sessionId },
-    orderBy: { order: "asc" },
+    orderBy: { pageNumber: "asc" },
     include: {
       options: true,
     },

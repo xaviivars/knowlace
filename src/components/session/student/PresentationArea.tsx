@@ -1,10 +1,22 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { QuestionView } from "@/components/session/teacher/QuestionView"
 
 const PdfViewer = dynamic(() => import("../PdfViewer"), {
   ssr: false,
 })
+
+type QuestionWithOptions = {
+  id: string
+  content: string
+  pageNumber: number
+  options: {
+    id: string
+    content: string
+    isCorrect: boolean
+  }[]
+}
 
 type Props = {
   joined: boolean
@@ -17,6 +29,8 @@ type Props = {
   accessCode: string
   pageNumber: number
   onPageChange: (page: number) => void
+
+  questions: QuestionWithOptions[]
 }
 
 export default function PresentationArea({
@@ -30,7 +44,12 @@ export default function PresentationArea({
   accessCode,
   pageNumber,
   onPageChange,
+  questions
 }: Props) {
+
+  const currentQuestion = questions.find(
+    (q) => q.pageNumber === pageNumber
+  )
 
   // No unido
   if (!joined) {
@@ -83,13 +102,17 @@ export default function PresentationArea({
 
   // Sesión activa → Mostrar PDF
   return (
-    <div className="flex-1 bg-[#0b162c]">
+    <div className="flex-1 min-h-screen bg-[#0b162c]">
+      {currentQuestion ? (
+        <QuestionView question={currentQuestion} />
+      ) : (
       <PdfViewer
         accessCode={accessCode}
         pageNumber={pageNumber}
         onPageChange={onPageChange}
         isOwner={false}
       />
+      )}
     </div>
   )
 }

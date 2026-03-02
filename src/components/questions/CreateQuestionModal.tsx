@@ -14,6 +14,8 @@ export default function CreateQuestionModal({
   const router = useRouter()
 
   const [content, setContent] = useState("")
+  const [pageNumber, setPageNumber] = useState(1)
+
   const [options, setOptions] = useState([
     { content: "", isCorrect: true },
     { content: "", isCorrect: false },
@@ -36,16 +38,25 @@ export default function CreateQuestionModal({
   }
 
   function handleSubmit() {
-    startTransition(async () => {
-      await createQuestionAction({
-        sessionId,
-        content,
-        options,
-      })
+    if (!content.trim()) return
+    if (pageNumber < 1) return
 
-      setIsOpen(false)
-      setContent("")
-      router.refresh()
+    startTransition(async () => {
+      try {
+        await createQuestionAction({
+          sessionId,
+          content,
+          options,
+          pageNumber,
+        })
+        
+        setIsOpen(false)
+        setContent("")
+        setPageNumber(1)
+        router.refresh()
+      } catch (err: any) {
+        alert(err.message || "Error al crear la pregunta")
+      }
     })
   }
 
@@ -65,6 +76,19 @@ export default function CreateQuestionModal({
             <h2 className="text-2xl font-bold">
               Nueva pregunta
             </h2>
+
+            <div className="space-y-2">
+              <label className="text-sm text-zinc-400">
+                Página del PDF
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={pageNumber}
+                onChange={(e) => setPageNumber(Number(e.target.value))}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
 
             <textarea
               className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"

@@ -15,6 +15,13 @@ export default async function PublicSessionPage({
     where: {
       accessCode: normalizedCode,
     },
+     include: {
+      questions: {
+        include: {
+          options: true,
+        },
+      },
+    },
   })
 
   if (!session) {
@@ -29,7 +36,7 @@ export default async function PublicSessionPage({
   return (
     <div className="min-h-screen bg-[#0e1d38] text-white flex flex-col items-center justify-center px-6">
 
-      <SessionClient accessCode={normalizedCode} initialIsActive={session.isActive} initialParticipants={participants} sessionTitle={session.title} initialPage={session.currentPage} />
+      <SessionClient accessCode={normalizedCode} initialIsActive={session.isActive} initialParticipants={participants} sessionTitle={session.title} initialPage={session.currentPage} questions={session.questions} />
       
     </div>
   )

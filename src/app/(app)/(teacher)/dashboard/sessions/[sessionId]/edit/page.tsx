@@ -24,7 +24,7 @@ export default async function SessionEditorPage({
     where: { id: sessionId  },
     include: {
       questions: {
-        orderBy: { order: "asc" },
+        orderBy: { pageNumber: "asc" },
         include: { options: true },
       },
     },

@@ -14,18 +14,31 @@ type Participant = {
   name: string
 }
 
+type QuestionWithOptions = {
+  id: string
+  content: string
+  pageNumber: number
+  options: {
+    id: string
+    content: string
+    isCorrect: boolean
+  }[]
+}
+
 export default function SessionClient({
   sessionTitle,
   accessCode,
   initialIsActive,
   initialParticipants,
-  initialPage
+  initialPage,
+  questions
 }: {
   sessionTitle: string
   accessCode: string
   initialIsActive: boolean
   initialParticipants: Participant[]
-  initialPage: number
+  initialPage: number,
+  questions: QuestionWithOptions[]
 }) {
   const [isActive, setIsActive] = useState(initialIsActive)
   const [participants, setParticipants] = useState(initialParticipants)
@@ -210,6 +223,8 @@ export default function SessionClient({
           accessCode={accessCode}
           pageNumber={localPage}
           onPageChange={handlePageChange}
+
+          questions={questions}
         />
 
         <Sidebar

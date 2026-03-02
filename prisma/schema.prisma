@@ -116,14 +116,15 @@ model Question {
   sessionId   String
   type        QuestionType
   content     String
-  order       Int
+  pageNumber  Int
   timeLimit   Int?          
   createdAt   DateTime      @default(now())
 
   session     TeachingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   options     Option[]
 
-  @@unique([sessionId, order])
+  @@unique([sessionId, pageNumber  ])
+  @@index([sessionId, pageNumber])
 }
 
 model Option {
