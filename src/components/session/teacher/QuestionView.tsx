@@ -1,3 +1,9 @@
+"use client"
+
+import { useState, useTransition } from "react"
+import { submitAnswer } from "@/lib/actions/answer-actions"
+import { getSocket } from "@/lib/socket"
+
 type QuestionOption = {
   id: string
   content: string
@@ -15,13 +21,47 @@ type QuestionViewProps = {
   question: QuestionWithOptions
   isOwner?: boolean
   onNext?: () => void
+  participantId?: string 
 }
 
 export function QuestionView({
   question,
   isOwner = false,
   onNext,
+  participantId,
 }: QuestionViewProps) {
+
+  const [selected, setSelected] = useState<string | null>(null)
+  const [answered, setAnswered] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  function handleAnswer(optionId: string) {
+    if (isOwner) return
+    if (!participantId) return
+    if (answered) return
+
+    startTransition(async () => {
+      try {
+        await submitAnswer({
+          participantId,
+          questionId: question.id,
+          optionId,
+        })
+
+        setSelected(optionId)
+        setAnswered(true)
+
+        const socket = getSocket()
+        socket.emit("answer-submitted", {
+          questionId: question.id,
+        })
+
+      } catch (err: any) {
+        alert(err.message)
+      }
+    })
+  }
+  
   return (
     <div className="min-h-screen bg-[#0b162c] text-white flex items-center justify-center px-6">
       <div className="w-full max-w-4xl space-y-10">
@@ -34,12 +74,22 @@ export function QuestionView({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {question.options.map((option) => (
-            <div
+            <button
               key={option.id}
-              className="bg-white/10 hover:bg-white/20 transition p-6 rounded-2xl text-lg font-medium backdrop-blur-sm"
+              disabled={answered || isOwner || isPending}
+              onClick={() => handleAnswer(option.id)}
+              className={`
+                p-6 rounded-2xl text-lg font-medium transition backdrop-blur-sm
+                ${
+                  selected === option.id
+                    ? "bg-indigo-600"
+                    : "bg-white/10 hover:bg-white/20"
+                }
+                ${answered ? "cursor-default" : ""}
+              `}
             >
               {option.content}
-            </div>
+            </button>
           ))}
         </div>
 

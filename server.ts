@@ -151,10 +151,56 @@ app.prepare().then(() => {
         if (typeof newPage !== "number") return
         if (newPage < 1) return
 
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+          include: {
+            questions: true,
+          },
+        })
+
+        if (!session) return
+
+
         await prisma.teachingSession.update({
           where: { accessCode },
           data: { currentPage: newPage },
         })
+
+        await prisma.question.updateMany({
+          where: {
+            sessionId: session.id,
+            isActive: true,
+          },
+          data: {
+            isActive: false,
+            endedAt: new Date(),
+          },
+        })
+
+        const question = session.questions.find(
+          (q) => q.pageNumber === newPage
+        )
+
+        if (question) {
+          const now = new Date()
+
+          await prisma.question.update({
+            where: { id: question.id },
+            data: {
+              isActive: true,
+              startedAt: now,
+              endedAt: null,
+            },
+          })
+
+          io.to(accessCode).emit("question-started", {
+            questionId: question.id,
+            timeLimit: question.timeLimit,
+            startedAt: now,
+          })
+        } else {
+          io.to(accessCode).emit("question-ended")
+        }
 
         io.to(accessCode).emit("page-updated", newPage)
       })

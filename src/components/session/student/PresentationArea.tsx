@@ -31,6 +31,8 @@ type Props = {
   onPageChange: (page: number) => void
 
   questions: QuestionWithOptions[]
+  participantId: string | null
+  activeQuestionId: string | null
 }
 
 export default function PresentationArea({
@@ -44,11 +46,15 @@ export default function PresentationArea({
   accessCode,
   pageNumber,
   onPageChange,
-  questions
+  questions,
+  participantId,
+  activeQuestionId
 }: Props) {
 
   const currentQuestion = questions.find(
-    (q) => q.pageNumber === pageNumber
+    (q) =>
+      q.pageNumber === pageNumber &&
+      q.id === activeQuestionId
   )
 
   // No unido
@@ -104,7 +110,7 @@ export default function PresentationArea({
   return (
     <div className="flex-1 min-h-screen bg-[#0b162c]">
       {currentQuestion ? (
-        <QuestionView question={currentQuestion} />
+        <QuestionView question={currentQuestion} participantId={participantId ?? undefined}/>
       ) : (
       <PdfViewer
         accessCode={accessCode}

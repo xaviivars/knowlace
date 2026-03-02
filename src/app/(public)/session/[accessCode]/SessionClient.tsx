@@ -50,6 +50,7 @@ export default function SessionClient({
   const [teacherPage, setTeacherPage] = useState(initialPage)
   const [localPage, setLocalPage] = useState(initialPage)
   const isFollowingTeacher = localPage === teacherPage
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
 
   useEffect(() => {
 
@@ -109,12 +110,22 @@ export default function SessionClient({
       })
     })
 
+    socket.on("question-started", ({ questionId }) => {
+      setActiveQuestionId(questionId)
+    })
+
+    socket.on("question-ended", () => {
+      setActiveQuestionId(null)
+    })
+
     return () => {
       socket.off("participants-list")
       socket.off("session-started")
       socket.off("session-ended")
       socket.off("connect")
       socket.off("page-updated")
+      socket.off("question-started")
+      socket.off("question-ended")
     }
   }, [accessCode])  
 
@@ -225,6 +236,8 @@ export default function SessionClient({
           onPageChange={handlePageChange}
 
           questions={questions}
+          participantId={participantIdRef.current}
+          activeQuestionId={activeQuestionId}
         />
 
         <Sidebar
