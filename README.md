@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/images/logo.png" width="400" />
+  <img src="/src/assets/images/logo_1000x250.png" width="400" />
 </p>
 
 ## Knowlace - Presentaciones interactivas gamificadas en tiempo real
