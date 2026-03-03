@@ -31,6 +31,10 @@ export default function Sidebar({
         <p className="text-sm text-white/60">
           {isActive ? "Sesión activa" : "Esperando inicio"}
         </p>
+
+        <h4 className="text-m mt-3">
+          Participantes conectados: {participants.length}
+        </h4>
       </div>
 
     <div className="mb-6">
@@ -69,20 +73,6 @@ export default function Sidebar({
         </div>
       )}
     </div>
-
-      <div className="mb-6 flex-1 overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-3">
-          Participantes ({participants.length})
-        </h3>
-
-        <div className="space-y-2 text-sm text-white/80">
-          {participants.map((p) => (
-            <div key={p.id} className="bg-white/5 px-3 py-2 rounded">
-              {p.name}
-            </div>
-          ))}
-        </div>
-      </div>
 
       {joined && (
         <button
