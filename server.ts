@@ -3,7 +3,7 @@ import { createServer } from "http"
 import next from "next"
 import { Server } from "socket.io"
 import { prisma } from "@/lib/prisma"
-import { getParticipantsByAccessCode, getLeaderboardByAccessCode } from "@/lib/services/session-service"
+import { getParticipantsByAccessCode, getLeaderboardByAccessCode, getQuestionStats } from "@/lib/services/session-service"
 import { auth } from "@/lib/auth"
 
 const dev = process.env.NODE_ENV !== "production"
@@ -157,9 +157,6 @@ app.prepare().then(() => {
 
         const session = await prisma.teachingSession.findUnique({
           where: { accessCode },
-          include: {
-            questions: true,
-          },
         })
 
         if (!session) return
@@ -170,22 +167,81 @@ app.prepare().then(() => {
           data: { currentPage: newPage },
         })
 
-        await prisma.question.updateMany({
+        const question = await prisma.question.findFirst({
           where: {
             sessionId: session.id,
-            isActive: true,
-          },
-          data: {
-            isActive: false,
-            endedAt: new Date(),
+            pageNumber: newPage,
           },
         })
 
-        const question = session.questions.find(
-          (q) => q.pageNumber === newPage
+        if (question) {
+          const stats = await getQuestionStats(question.id)
+          io.to(accessCode).emit("question-stats-updated", stats)
+        }
+
+        io.to(accessCode).emit("page-updated", newPage)
+      })
+
+      socket.on("answer-submitted", async () => {
+
+        const accessCode = socket.data.accessCode
+        if (!accessCode) return
+
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+          include: { questions: true },
+        })
+
+        if (!session) return
+
+        const activeQuestion = session.questions.find(
+          q => q.isActive === true
         )
 
-        if (question) {
+        if (!activeQuestion) return
+        
+        const leaderboard = await getLeaderboardByAccessCode(accessCode)
+        if (!leaderboard) return
+        
+        const stats = await getQuestionStats(activeQuestion.id)
+
+        io.to(accessCode).emit("leaderboard-updated", leaderboard)
+        io.to(accessCode).emit("question-stats-updated", stats)
+      })
+
+      socket.on("launch-question", async () => {
+        const accessCode = socket.data.accessCode
+
+        if (!accessCode) return
+        if (socket.data.role !== "owner") return
+
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+          include: { questions: true },
+        })
+
+        if (!session) return
+
+        const question = session.questions.find(
+          (q) => q.pageNumber === session.currentPage
+        )
+
+        if (!question) return
+
+        io.to(accessCode).emit("question-countdown", {
+          seconds: 3,
+        })
+
+        setTimeout(async () => {
+
+          const updatedSession = await prisma.teachingSession.findUnique({
+            where: { accessCode },
+          })
+
+          if (!updatedSession) return
+
+          if (updatedSession.currentPage !== question.pageNumber) return
+
           const now = new Date()
 
           await prisma.question.update({
@@ -202,22 +258,43 @@ app.prepare().then(() => {
             timeLimit: question.timeLimit,
             startedAt: now,
           })
-        } else {
-          io.to(accessCode).emit("question-ended")
-        }
 
-        io.to(accessCode).emit("page-updated", newPage)
+        }, 3000)
       })
 
-      socket.on("answer-submitted", async () => {
-
+      socket.on("end-question", async () => {
         const accessCode = socket.data.accessCode
-        if (!accessCode) return
-        
-        const leaderboard = await getLeaderboardByAccessCode(accessCode)
-        if (!leaderboard) return
 
-        io.to(accessCode).emit("leaderboard-updated", leaderboard)
+        if (!accessCode) return
+        if (socket.data.role !== "owner") return
+
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+          include: { questions: true },
+        })
+
+        if (!session) return
+
+        const activeQuestion = session.questions.find(
+          q => q.isActive === true
+        )
+
+        if (!activeQuestion) return
+
+        const now = new Date()
+
+        await prisma.question.update({
+          where: { id: activeQuestion.id },
+          data: {
+            isActive: false,
+            endedAt: now,
+          },
+        })
+
+        const stats = await getQuestionStats(activeQuestion.id)
+
+        io.to(accessCode).emit("question-ended")
+        io.to(accessCode).emit("question-stats-updated", stats)
       })
 
     })

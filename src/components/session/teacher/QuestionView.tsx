@@ -20,14 +20,12 @@ type QuestionWithOptions = {
 type QuestionViewProps = {
   question: QuestionWithOptions
   isOwner?: boolean
-  onNext?: () => void
   participantId?: string 
 }
 
 export function QuestionView({
   question,
   isOwner = false,
-  onNext,
   participantId,
 }: QuestionViewProps) {
 
@@ -98,17 +96,6 @@ export function QuestionView({
             </button>
           ))}
         </div>
-
-        {isOwner && onNext && (
-          <div className="flex justify-center pt-6">
-            <button
-              onClick={onNext}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 transition rounded-xl font-semibold"
-            >
-              Siguiente
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

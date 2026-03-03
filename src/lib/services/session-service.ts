@@ -37,3 +37,27 @@ export async function getLeaderboardByAccessCode(accessCode: string) {
     },
   })
 }
+
+export async function getQuestionStats(questionId: string) {
+  const totalAnswers = await prisma.answer.count({
+    where: { questionId },
+  })
+
+  const correctAnswers = await prisma.answer.count({
+    where: {
+      questionId,
+      option: {
+        isCorrect: true,
+      },
+    },
+  })
+
+  return {
+    totalAnswers,
+    correctAnswers,
+    percentage:
+      totalAnswers === 0
+        ? 0
+        : Math.round((correctAnswers / totalAnswers) * 100),
+  }
+}

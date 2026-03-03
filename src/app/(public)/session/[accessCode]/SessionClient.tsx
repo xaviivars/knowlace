@@ -53,6 +53,7 @@ export default function SessionClient({
   const isFollowingTeacher = localPage === teacherPage
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
   const [leaderboard, setLeaderboard] = useState<Participant[]>([])
+  const [countdown, setCountdown] = useState<number | null>(null)
 
   useEffect(() => {
 
@@ -124,6 +125,23 @@ export default function SessionClient({
       setLeaderboard(data)
     })
 
+    socket.on("question-countdown", ({ seconds }) => {
+      setCountdown(seconds)
+
+      let current = seconds
+
+      const interval = setInterval(() => {
+        current -= 1
+
+        if (current <= 0) {
+          clearInterval(interval)
+          setCountdown(null)
+        } else {
+          setCountdown(current)
+        }
+      }, 1000)
+    })
+
     return () => {
       socket.off("participants-list")
       socket.off("session-started")
@@ -133,6 +151,7 @@ export default function SessionClient({
       socket.off("question-started")
       socket.off("question-ended")
       socket.off("leaderboard-updated")
+      socket.off("question-countdown")
     }
   }, [accessCode])  
 
@@ -228,6 +247,14 @@ export default function SessionClient({
             >
               Seguir al profesor
             </button>
+          </div>
+        )}
+
+        {countdown !== null && (
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="text-8xl font-bold text-white animate-pulse">
+              {countdown}
+            </div>
           </div>
         )}
 
