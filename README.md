@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/images/logo.png" width="400" />
+</p>
+
 ## Knowlace - Presentaciones interactivas gamificadas en tiempo real
 
 Knowlace es una plataforma web educativa, actualmente en desarrollo, que permite a los docentes crear sesiones interactivas enriquecidas con preguntas generadas automáticamente mediante Inteligencia Artificial.
