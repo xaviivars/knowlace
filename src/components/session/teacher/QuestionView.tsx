@@ -42,7 +42,7 @@ export function QuestionView({
 
     startTransition(async () => {
       try {
-        await submitAnswer({
+        const result = await submitAnswer({
           participantId,
           questionId: question.id,
           optionId,
@@ -51,9 +51,15 @@ export function QuestionView({
         setSelected(optionId)
         setAnswered(true)
 
+        if (result.correct) {
+          alert("Correcta +100 puntos")
+        } else {
+          alert("Incorrecta")
+        }
+
         const socket = getSocket()
         socket.emit("answer-submitted", {
-          questionId: question.id,
+          sessionId: result.sessionId,
         })
 
       } catch (err: any) {

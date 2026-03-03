@@ -3,7 +3,7 @@ import { createServer } from "http"
 import next from "next"
 import { Server } from "socket.io"
 import { prisma } from "@/lib/prisma"
-import { getParticipantsByAccessCode } from "@/lib/services/session-service"
+import { getParticipantsByAccessCode, getLeaderboardByAccessCode } from "@/lib/services/session-service"
 import { auth } from "@/lib/auth"
 
 const dev = process.env.NODE_ENV !== "production"
@@ -76,6 +76,11 @@ app.prepare().then(() => {
         socket.data.accessCode = accessCode
 
         socket.emit("participants-list", participants)
+
+        const leaderboard = await getLeaderboardByAccessCode(accessCode)
+        if (!leaderboard) return
+
+        socket.emit("leaderboard-updated", leaderboard)
       })
 
       socket.on("participant-joined", async (accessCode: string, participantId: string) => {
@@ -83,21 +88,20 @@ app.prepare().then(() => {
         socket.data.role = "participant"
         socket.data.accessCode = accessCode
 
-        const session = await prisma.teachingSession.findUnique({
-          where: { accessCode },
-        })
-
-        if (!session) return
-
         await prisma.participant.update({
           where: { id: participantId },
-          data: { lastSeen: new Date() },
+          data: { lastSeen: new Date(), isActive: true},
         })
-          
-        const participants = await getParticipantsByAccessCode(accessCode)
-
         socket.join(accessCode)
+
+        const participants = await getParticipantsByAccessCode(accessCode)
+        
         io.to(accessCode).emit("participants-list", participants)
+
+        const leaderboard = await getLeaderboardByAccessCode(accessCode)
+        if (!leaderboard) return
+
+        socket.emit("leaderboard-updated", leaderboard)
       })
 
       socket.on("disconnect", async () => {
@@ -203,6 +207,17 @@ app.prepare().then(() => {
         }
 
         io.to(accessCode).emit("page-updated", newPage)
+      })
+
+      socket.on("answer-submitted", async () => {
+
+        const accessCode = socket.data.accessCode
+        if (!accessCode) return
+        
+        const leaderboard = await getLeaderboardByAccessCode(accessCode)
+        if (!leaderboard) return
+
+        io.to(accessCode).emit("leaderboard-updated", leaderboard)
       })
 
     })

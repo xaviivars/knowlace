@@ -12,6 +12,7 @@ import Link from "next/link"
 type Participant = {
   id: string
   name: string
+  score?: number
 }
 
 type QuestionWithOptions = {
@@ -51,6 +52,7 @@ export default function SessionClient({
   const [localPage, setLocalPage] = useState(initialPage)
   const isFollowingTeacher = localPage === teacherPage
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
+  const [leaderboard, setLeaderboard] = useState<Participant[]>([])
 
   useEffect(() => {
 
@@ -118,6 +120,10 @@ export default function SessionClient({
       setActiveQuestionId(null)
     })
 
+    socket.on("leaderboard-updated", (data: Participant[]) => {
+      setLeaderboard(data)
+    })
+
     return () => {
       socket.off("participants-list")
       socket.off("session-started")
@@ -126,6 +132,7 @@ export default function SessionClient({
       socket.off("page-updated")
       socket.off("question-started")
       socket.off("question-ended")
+      socket.off("leaderboard-updated")
     }
   }, [accessCode])  
 
@@ -243,6 +250,7 @@ export default function SessionClient({
         <Sidebar
           sessionTitle={sessionTitle}
           participants={participants}
+          leaderboard={leaderboard}
           joined={joined}
           isActive={isActive}
           onLeave={handleLeave}

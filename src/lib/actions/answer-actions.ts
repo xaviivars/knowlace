@@ -28,11 +28,11 @@ export async function submitAnswer({
     throw new Error("Participante inválido")
   }
 
-  const optionBelongsToQuestion = question.options.some(
+  const selectedOption = question.options.find(
     (opt) => opt.id === optionId
   )
 
-  if (!optionBelongsToQuestion) {
+  if (!selectedOption) {
     throw new Error("Opción inválida")
   }
 
@@ -57,5 +57,27 @@ export async function submitAnswer({
     },
   })
 
-  return { success: true }
+  const isCorrect = selectedOption.isCorrect
+
+  let points = 0
+
+  if (isCorrect) {
+    points = 100
+
+    await prisma.participant.update({
+      where: { id: participantId },
+      data: {
+        score: {
+          increment: points,
+        },
+      },
+    })
+  }
+
+  return {
+    success: true,
+    correct: isCorrect,
+    points,
+    sessionId: question.sessionId,
+  }
 }
