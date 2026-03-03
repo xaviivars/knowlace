@@ -56,8 +56,8 @@ export default function SessionClient({
 
   useEffect(() => {
 
-    // Commented for dev
-    /*
+    const socket = getSocket()
+
     const stored = localStorage.getItem("knowlace_participant")
 
     if (stored) {
@@ -69,15 +69,15 @@ export default function SessionClient({
             setName(parsed.name)
             setJoined(true)
 
-            const socket = getSocket()
+            participantIdRef.current = parsed.participantId
+
             socket.emit("participant-joined", accessCode, parsed.participantId)
+          } else {
+            localStorage.removeItem("knowlace_participant")
           }
         })
       }
     }
-    */
-
-    const socket = getSocket()
 
     if (socket.connected) {
         socket.emit("viewer-join", accessCode)
@@ -142,8 +142,6 @@ export default function SessionClient({
 
       const result = await joinSession(accessCode, name)
 
-      // Commented for dev
-      /*
       localStorage.setItem(
         "knowlace_participant",
         JSON.stringify({
@@ -152,7 +150,6 @@ export default function SessionClient({
           name,
         })
       )
-      */
       
       const socket = getSocket()
 
@@ -167,8 +164,9 @@ export default function SessionClient({
   }
 
   const handleLeave = async () => {
-    // Como estamos en dev, no usamos storage
-    // Necesitamos saber el participantId desde el socket
+
+    localStorage.removeItem("knowlace_participant")
+
     if (!participantIdRef.current) return
 
     await leaveParticipant(participantIdRef.current)
@@ -183,6 +181,9 @@ export default function SessionClient({
   }
 
   const handleGoHome = async () => {
+
+    localStorage.removeItem("knowlace_participant")
+
     if (participantIdRef.current) {
       await leaveParticipant(participantIdRef.current)
 
