@@ -4,6 +4,7 @@ import { getSocket } from "@/lib/socket"
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
 import { QuestionView } from "@/components/session/teacher/QuestionView"
+import QuestionResultsView from "@/components/session/QuestionResultsView"
 
 const PdfViewer = dynamic(() => import("../PdfViewer"), { ssr: false })
 
@@ -16,6 +17,13 @@ type QuestionWithOptions = {
     content: string
     isCorrect: boolean
   }[]
+}
+
+type Stats = {
+  totalAnswers: number
+  correctAnswers: number
+  percentage: number
+  optionCounts: Record<string, number>
 }
 
 export default function OwnerSessionPresentation({
@@ -40,11 +48,9 @@ export default function OwnerSessionPresentation({
 
   const [countdown, setCountdown] = useState<number | null>(null)
 
-  const [stats, setStats] = useState<{
-    totalAnswers: number
-    correctAnswers: number
-    percentage: number
-  } | null>(null)
+  const [statsByQuestion, setStatsByQuestion] = useState<
+    Record<string, Stats>
+  >({})
 
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
 
@@ -105,7 +111,21 @@ export default function OwnerSessionPresentation({
       })
 
       socket.on("question-stats-updated", (data) => {
-        setStats(data)
+        setStatsByQuestion(prev => ({
+          ...prev,
+          [data.questionId]: data
+        }))
+      })
+
+      socket.on("question-reset", () => {
+        setActiveQuestionId(null)
+        setRemainingTime(null)
+
+        setStatsByQuestion(prev => {
+          const copy = { ...prev }
+          delete copy[currentQuestion?.id ?? ""]
+          return copy
+        })
       })
 
       return () => {
@@ -114,20 +134,27 @@ export default function OwnerSessionPresentation({
         socket.off("question-ended")
         socket.off("question-countdown")
         socket.off("question-stats-updated")
+        socket.off("question-reset")
       }
     }, [accessCode])
 
     const handlePageChange = (newPage: number) => {
       setPageNumber(newPage)
+      setActiveQuestionId(null)
+      setRemainingTime(null)
 
-    const socket = getSocket()
-        socket.emit("page-changed", newPage)
+      const socket = getSocket()
+      socket.emit("page-changed", newPage)
     }
+
+    const currentStats = currentQuestion
+      ? statsByQuestion[currentQuestion.id]
+      : null
 
   return (
     <div className="flex-1 bg-[#0b162c] relative">
 
-      {currentQuestion && isOwner && activeQuestionId !== currentQuestion.id && countdown === null && (
+      {currentQuestion && isOwner && activeQuestionId !== currentQuestion.id && countdown === null && !currentStats && (
         <div className="absolute top-6 right-6 z-20">
           <button
             onClick={() => {
@@ -164,48 +191,87 @@ export default function OwnerSessionPresentation({
       )}
 
       {currentQuestion ? (
-        <>
-        <QuestionView 
-          question={currentQuestion} 
-          isOwner={isOwner} 
-          remainingTime={remainingTime ?? undefined}
-          isActive={activeQuestionId === currentQuestion.id}
-        />
+    
+        activeQuestionId === currentQuestion.id ? (
 
-        <div className="absolute bottom-6 right-6 flex gap-4">
-          {pageNumber > 1 && (
-            <button
-              onClick={() => handlePageChange(pageNumber - 1)}
-              className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
-            >
-              Anterior
-            </button>
-          )}
-
-          <button
-            onClick={() => handlePageChange(pageNumber + 1)}
-            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
-          >
-            Siguiente
-          </button>
-        </div>
-
-        {stats && (
-          <div className="absolute bottom-6 left-6 bg-white/10 backdrop-blur p-6 rounded-xl">
-            <p className="text-sm">Respuestas: {stats.totalAnswers}</p>
-            <p className="text-sm">Aciertos: {stats.correctAnswers}</p>
-            <p className="text-sm">% Aciertos: {stats.percentage}%</p>
-          </div>
-        )}
-      </>
-      ) : (
-          <PdfViewer
-            accessCode={accessCode}
-            pageNumber={pageNumber}
-            onPageChange={handlePageChange}
-            isOwner={true}
+          <QuestionView 
+            question={currentQuestion} 
+            isOwner={isOwner} 
+            remainingTime={remainingTime ?? undefined}
+            isActive={activeQuestionId === currentQuestion.id}
           />
-      )}
+
+          ) : currentStats ? (
+            
+            <>
+              <QuestionResultsView
+                question={currentQuestion}
+                stats={currentStats}
+                onRelaunch={() => {
+                  const socket = getSocket()
+                  socket.emit("relaunch-question")
+                }}
+              />
+
+              <div className="flex justify-end gap-4 mt-10 px-10">
+                {pageNumber > 1 && (
+                  <button
+                    onClick={() => handlePageChange(pageNumber - 1)}
+                    className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
+                  >
+                    Anterior
+                  </button>
+                )}
+
+                <button
+                  onClick={() => handlePageChange(pageNumber + 1)}
+                  className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </>
+          ) : (
+            
+            <>
+              <QuestionView
+                question={currentQuestion}
+                isOwner={isOwner}
+                isActive={false}
+              />
+
+              {isOwner && (
+                <div className="flex justify-end gap-4 mt-10 px-10">
+                  {pageNumber > 1 && (
+                    <button
+                      onClick={() => handlePageChange(pageNumber - 1)}
+                      className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
+                    >
+                      Anterior
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => handlePageChange(pageNumber + 1)}
+                    className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              )}
+            </>
+          )
+    
+        ) : (
+            <PdfViewer
+              accessCode={accessCode}
+              pageNumber={pageNumber}
+              onPageChange={handlePageChange}
+              isOwner={true}
+            />
+        )}
+
     </div>
+    
   )
 }

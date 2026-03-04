@@ -26,6 +26,13 @@ type QuestionWithOptions = {
   }[]
 }
 
+type Stats = {
+  totalAnswers: number
+  correctAnswers: number
+  percentage: number
+  optionCounts: Record<string, number>
+}
+
 export default function SessionClient({
   sessionTitle,
   accessCode,
@@ -55,6 +62,10 @@ export default function SessionClient({
   const [leaderboard, setLeaderboard] = useState<Participant[]>([])
   const [countdown, setCountdown] = useState<number | null>(null)
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
+
+  const [statsByQuestion, setStatsByQuestion] = useState<
+    Record<string, Stats>
+  >({})
 
   useEffect(() => {
 
@@ -120,6 +131,8 @@ export default function SessionClient({
       const start = new Date(startedAt).getTime()
       const end = start + timeLimit * 1000
 
+      let interval: NodeJS.Timeout
+
       const updateTimer = () => {
         const now = Date.now()
         const remaining = Math.max(
@@ -135,12 +148,12 @@ export default function SessionClient({
       }
 
       updateTimer()
-
-      const interval = setInterval(updateTimer, 1000)
+      interval = setInterval(updateTimer, 1000)
     })
 
     socket.on("question-ended", () => {
       setActiveQuestionId(null)
+      setRemainingTime(null)
     })
 
     socket.on("leaderboard-updated", (data: Participant[]) => {
@@ -164,6 +177,13 @@ export default function SessionClient({
       }, 1000)
     })
 
+    socket.on("question-stats-updated", (data) => {
+      setStatsByQuestion(prev => ({
+        ...prev,
+        [data.questionId]: data
+      }))
+    })
+
     return () => {
       socket.off("participants-list")
       socket.off("session-started")
@@ -174,6 +194,7 @@ export default function SessionClient({
       socket.off("question-ended")
       socket.off("leaderboard-updated")
       socket.off("question-countdown")
+      socket.off("question-stats-updated")
     }
   }, [accessCode])  
 
@@ -239,7 +260,24 @@ export default function SessionClient({
 
   const handlePageChange = (newPage: number) => {
     setLocalPage(newPage)
+
+    const socket = getSocket()
+
+    socket.emit("request-question-state", {
+      accessCode,
+      pageNumber: newPage
+    })
   }
+
+  const currentQuestion = questions.find(
+    q => q.pageNumber === localPage
+  )
+
+  const currentStats = currentQuestion
+    ? statsByQuestion[currentQuestion.id]
+    : null
+
+    console.log("currentStats", currentStats)
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0e1d38] text-white">
@@ -296,6 +334,7 @@ export default function SessionClient({
           participantId={participantIdRef.current}
           activeQuestionId={activeQuestionId}
           remainingTime={remainingTime}
+          stats={currentStats}
         />
 
         <Sidebar
@@ -311,3 +350,4 @@ export default function SessionClient({
     </div>
   )
 }
+

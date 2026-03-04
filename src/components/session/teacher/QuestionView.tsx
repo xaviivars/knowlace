@@ -92,7 +92,7 @@ export function QuestionView({
           {question.options.map((option) => (
             <button
               key={option.id}
-              disabled={answered || isOwner || isPending}
+              disabled={!isActive || answered || isOwner || isPending}
               onClick={() => handleAnswer(option.id)}
               className={`
                 p-6 rounded-2xl text-lg font-medium transition backdrop-blur-sm

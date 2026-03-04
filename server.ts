@@ -260,9 +260,14 @@ app.prepare().then(() => {
           },
         })
 
-        if (question) {
+        if (question && question.endedAt) {
+
           const stats = await getQuestionStats(question.id)
-          io.to(accessCode).emit("question-stats-updated", stats)
+
+          io.to(accessCode).emit("question-stats-updated", {
+            questionId: question.id,
+            ...stats
+          })
         }
 
         io.to(accessCode).emit("page-updated", newPage)
@@ -368,7 +373,10 @@ app.prepare().then(() => {
             const stats = await getQuestionStats(question.id)
 
             io.to(accessCode).emit("question-ended")
-            io.to(accessCode).emit("question-stats-updated", stats)
+            io.to(accessCode).emit("question-stats-updated", {
+              questionId: question.id,
+              ...stats
+            })
 
           }, timeLimit * 1000)
 
@@ -407,9 +415,73 @@ app.prepare().then(() => {
         const stats = await getQuestionStats(activeQuestion.id)
 
         io.to(accessCode).emit("question-ended")
-        io.to(accessCode).emit("question-stats-updated", stats)
+        io.to(accessCode).emit("question-stats-updated", {
+          questionId: activeQuestion.id,
+          ...stats
+        })
       })
 
+      socket.on("request-question-state", async ({ accessCode, pageNumber }) => {
+        
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+          include: { questions: true }
+        })
+
+        if (!session) return
+
+        const question = session.questions.find(
+          q => q.pageNumber === pageNumber
+        )
+
+        if (!question) return
+
+        if (!question.isActive && question.endedAt) {
+
+          const stats = await getQuestionStats(question.id)
+
+          socket.emit("question-stats-updated", {
+            questionId: question.id,
+            ...stats
+          })
+        }
+      })
+
+      socket.on("relaunch-question", async () => {
+
+        const accessCode = socket.data.accessCode
+
+        if (!accessCode) return
+        if (socket.data.role !== "owner") return
+
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+          include: { questions: true }
+        })
+
+        if (!session) return
+
+        const question = session.questions.find(
+          q => q.pageNumber === session.currentPage
+        )
+
+        if (!question) return
+
+        await prisma.answer.deleteMany({
+          where: { questionId: question.id }
+        })
+
+        await prisma.question.update({
+          where: { id: question.id },
+          data: {
+            isActive: false,
+            startedAt: null,
+            endedAt: null
+          }
+        })
+
+        io.to(accessCode).emit("question-reset")
+      })
     })
 
   httpServer.listen(port, () => {

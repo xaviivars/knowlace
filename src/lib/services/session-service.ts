@@ -39,18 +39,24 @@ export async function getLeaderboardByAccessCode(accessCode: string) {
 }
 
 export async function getQuestionStats(questionId: string) {
-  const totalAnswers = await prisma.answer.count({
+
+  const answers = await prisma.answer.findMany({
     where: { questionId },
+    include: {
+      option: true
+    }
   })
 
-  const correctAnswers = await prisma.answer.count({
-    where: {
-      questionId,
-      option: {
-        isCorrect: true,
-      },
-    },
-  })
+  const totalAnswers = answers.length
+
+  const correctAnswers = answers.filter(a => a.option.isCorrect).length
+
+  const optionCounts: Record<string, number> = {}
+
+  for (const answer of answers) {
+    optionCounts[answer.optionId] =
+      (optionCounts[answer.optionId] || 0) + 1
+  }
 
   return {
     totalAnswers,
@@ -59,5 +65,6 @@ export async function getQuestionStats(questionId: string) {
       totalAnswers === 0
         ? 0
         : Math.round((correctAnswers / totalAnswers) * 100),
+    optionCounts
   }
 }

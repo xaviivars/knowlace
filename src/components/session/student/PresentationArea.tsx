@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic"
 import { QuestionView } from "@/components/session/teacher/QuestionView"
+import QuestionResultsView from "@/components/session/QuestionResultsView"
 
 const PdfViewer = dynamic(() => import("../PdfViewer"), {
   ssr: false,
@@ -34,6 +35,12 @@ type Props = {
   participantId: string | null
   activeQuestionId: string | null
   remainingTime: number | null
+  stats: {
+    totalAnswers: number
+    correctAnswers: number
+    percentage: number
+    optionCounts: Record<string, number>
+  } | null
 }
 
 export default function PresentationArea({
@@ -50,13 +57,13 @@ export default function PresentationArea({
   questions,
   participantId,
   activeQuestionId,
-  remainingTime
+  remainingTime,
+  stats
 }: Props) {
 
   const currentQuestion = questions.find(
     (q) =>
-      q.pageNumber === pageNumber &&
-      q.id === activeQuestionId
+      q.pageNumber === pageNumber 
   )
 
   // No unido
@@ -108,19 +115,71 @@ export default function PresentationArea({
     )
   }
 
-  // Sesión activa → Mostrar PDF
+  // Sesión activa
   return (
-    <div className="flex-1 min-h-screen bg-[#0b162c]">
-      {currentQuestion ? (
-        <QuestionView question={currentQuestion} participantId={participantId ?? undefined} remainingTime={remainingTime ?? undefined}/>
-      ) : (
-      <PdfViewer
-        accessCode={accessCode}
-        pageNumber={pageNumber}
-        onPageChange={onPageChange}
-        isOwner={false}
-      />
-      )}
+    <div className="relative flex flex-col flex-1 bg-[#0b162c]">
+      
+      <div className="flex-1">
+
+        {currentQuestion ? (
+
+          activeQuestionId === currentQuestion.id ? (
+
+          <QuestionView 
+            question={currentQuestion} 
+            participantId={participantId ?? undefined} 
+            remainingTime={remainingTime ?? undefined}
+            isActive= {true}
+          />
+
+          ) : stats ? (
+
+            <QuestionResultsView
+              question={currentQuestion}
+              stats={stats}
+            />
+
+          ) : (
+
+            <PdfViewer
+              accessCode={accessCode}
+              pageNumber={pageNumber}
+              onPageChange={onPageChange}
+              isOwner={false}
+          />
+          
+          )
+
+        ) : (
+
+          <PdfViewer
+            accessCode={accessCode}
+            pageNumber={pageNumber}
+            onPageChange={onPageChange}
+            isOwner={false}
+          />
+
+        )}
+      
+      </div>
+
+      <div className="w-full flex justify-end gap-4 px-6 py-6">
+        {pageNumber > 1 && (
+          <button
+            onClick={() => onPageChange(pageNumber - 1)}
+            className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
+          >
+            Anterior
+          </button>
+        )}
+
+        <button
+          onClick={() => onPageChange(pageNumber + 1)}
+          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
+        >
+          Siguiente
+        </button>
+      </div>
     </div>
   )
 }
