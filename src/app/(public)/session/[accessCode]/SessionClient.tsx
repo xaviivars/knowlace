@@ -54,6 +54,7 @@ export default function SessionClient({
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
   const [leaderboard, setLeaderboard] = useState<Participant[]>([])
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [remainingTime, setRemainingTime] = useState<number | null>(null)
 
   useEffect(() => {
 
@@ -113,8 +114,29 @@ export default function SessionClient({
       })
     })
 
-    socket.on("question-started", ({ questionId }) => {
+    socket.on("question-started", ({ questionId, timeLimit, startedAt }) => {
       setActiveQuestionId(questionId)
+
+      const start = new Date(startedAt).getTime()
+      const end = start + timeLimit * 1000
+
+      const updateTimer = () => {
+        const now = Date.now()
+        const remaining = Math.max(
+          0,
+          Math.floor((end - now) / 1000)
+        )
+
+        setRemainingTime(remaining)
+
+        if (remaining <= 0) {
+          clearInterval(interval)
+        }
+      }
+
+      updateTimer()
+
+      const interval = setInterval(updateTimer, 1000)
     })
 
     socket.on("question-ended", () => {
@@ -273,6 +295,7 @@ export default function SessionClient({
           questions={questions}
           participantId={participantIdRef.current}
           activeQuestionId={activeQuestionId}
+          remainingTime={remainingTime}
         />
 
         <Sidebar

@@ -67,6 +67,13 @@ app.prepare().then(() => {
       })
 
       socket.on("viewer-join", async (accessCode: string) => {
+
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+        })
+
+        if (!session) return
+
         const participants = await getParticipantsByAccessCode(accessCode)
 
         if (!participants) return
@@ -81,6 +88,43 @@ app.prepare().then(() => {
         if (!leaderboard) return
 
         socket.emit("leaderboard-updated", leaderboard)
+
+        const activeQuestion = await prisma.question.findFirst({
+          where: {
+            sessionId: session.id,
+            isActive: true,
+          },
+        })
+
+        if (activeQuestion && activeQuestion.startedAt && activeQuestion.endedAt) {
+          const now = new Date()
+
+          const remaining = Math.max(
+            0,
+            Math.floor(
+              (activeQuestion.endedAt.getTime() - now.getTime()) / 1000
+            )
+          )
+
+          if (remaining > 0) {
+            socket.emit("question-started", {
+              questionId: activeQuestion.id,
+              timeLimit: remaining,
+              startedAt: activeQuestion.startedAt,
+            })
+          } else {
+            await prisma.question.update({
+              where: { id: activeQuestion.id },
+              data: { isActive: false },
+            })
+
+            const stats = await getQuestionStats(activeQuestion.id)
+
+            socket.emit("question-ended")
+            socket.emit("question-stats-updated", stats)
+          }
+        }
+
       })
 
       socket.on("participant-joined", async (accessCode: string, participantId: string) => {
@@ -94,6 +138,12 @@ app.prepare().then(() => {
         })
         socket.join(accessCode)
 
+        const session = await prisma.teachingSession.findUnique({
+          where: { accessCode },
+        })
+
+        if (!session) return
+
         const participants = await getParticipantsByAccessCode(accessCode)
         
         io.to(accessCode).emit("participants-list", participants)
@@ -102,6 +152,42 @@ app.prepare().then(() => {
         if (!leaderboard) return
 
         socket.emit("leaderboard-updated", leaderboard)
+
+        const activeQuestion = await prisma.question.findFirst({
+          where: {
+            sessionId: session.id,
+            isActive: true,
+          },
+        })
+
+        if (activeQuestion && activeQuestion.startedAt && activeQuestion.endedAt) {
+          const now = new Date()
+
+          const remaining = Math.max(
+            0,
+            Math.floor(
+              (activeQuestion.endedAt.getTime() - now.getTime()) / 1000
+            )
+          )
+
+          if (remaining > 0) {
+            socket.emit("question-started", {
+              questionId: activeQuestion.id,
+              timeLimit: remaining,
+              startedAt: activeQuestion.startedAt,
+            })
+          } else {
+            await prisma.question.update({
+              where: { id: activeQuestion.id },
+              data: { isActive: false },
+            })
+
+            const stats = await getQuestionStats(activeQuestion.id)
+
+            socket.emit("question-ended")
+            socket.emit("question-stats-updated", stats)
+          }
+        }
       })
 
       socket.on("disconnect", async () => {
@@ -189,23 +275,31 @@ app.prepare().then(() => {
 
         const session = await prisma.teachingSession.findUnique({
           where: { accessCode },
-          include: { questions: true },
         })
 
         if (!session) return
 
-        const activeQuestion = session.questions.find(
-          q => q.isActive === true
-        )
+        const activeQuestion = await prisma.question.findFirst({
+          where: {
+            sessionId: session.id,
+            isActive: true,
+          },
+        })
 
         if (!activeQuestion) return
+
+        const now = new Date()
+        if (activeQuestion.endedAt && activeQuestion.endedAt < now) {
+          return
+        }
         
         const leaderboard = await getLeaderboardByAccessCode(accessCode)
-        if (!leaderboard) return
+        if (leaderboard) {
+          io.to(accessCode).emit("leaderboard-updated", leaderboard)
+        }
         
         const stats = await getQuestionStats(activeQuestion.id)
 
-        io.to(accessCode).emit("leaderboard-updated", leaderboard)
         io.to(accessCode).emit("question-stats-updated", stats)
       })
 
@@ -239,25 +333,44 @@ app.prepare().then(() => {
           })
 
           if (!updatedSession) return
-
           if (updatedSession.currentPage !== question.pageNumber) return
 
           const now = new Date()
+          
+          const timeLimit = question.timeLimit ?? 30
+
+          const endedAt = new Date(
+            now.getTime() + timeLimit * 1000
+          )
 
           await prisma.question.update({
             where: { id: question.id },
             data: {
               isActive: true,
               startedAt: now,
-              endedAt: null,
+              endedAt,
             },
           })
 
           io.to(accessCode).emit("question-started", {
             questionId: question.id,
-            timeLimit: question.timeLimit,
+            timeLimit: timeLimit,
             startedAt: now,
           })
+
+          setTimeout(async () => {
+
+            await prisma.question.update({
+              where: { id: question.id },
+              data: { isActive: false },
+            })
+
+            const stats = await getQuestionStats(question.id)
+
+            io.to(accessCode).emit("question-ended")
+            io.to(accessCode).emit("question-stats-updated", stats)
+
+          }, timeLimit * 1000)
 
         }, 3000)
       })

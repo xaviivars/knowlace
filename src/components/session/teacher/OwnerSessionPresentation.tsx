@@ -46,6 +46,8 @@ export default function OwnerSessionPresentation({
     percentage: number
   } | null>(null)
 
+  const [remainingTime, setRemainingTime] = useState<number | null>(null)
+
     useEffect(() => {
       const socket = getSocket()
 
@@ -55,12 +57,34 @@ export default function OwnerSessionPresentation({
         setPageNumber(newPage)
       })
 
-      socket.on("question-started", ({ questionId }) => {
+      socket.on("question-started", ({ questionId, timeLimit, startedAt }) => {
         setActiveQuestionId(questionId)
+
+        const start = new Date(startedAt).getTime()
+        const end = start + timeLimit * 1000
+
+        const updateTimer = () => {
+          const now = Date.now()
+          const remaining = Math.max(
+            0,
+            Math.floor((end - now) / 1000)
+          )
+
+          setRemainingTime(remaining)
+
+          if (remaining <= 0) {
+            clearInterval(interval)
+          }
+        }
+
+        updateTimer()
+
+        const interval = setInterval(updateTimer, 1000)
       })
 
       socket.on("question-ended", () => {
         setActiveQuestionId(null)
+        setRemainingTime(null)
       })
 
       socket.on("question-countdown", ({ seconds }) => {
@@ -144,6 +168,8 @@ export default function OwnerSessionPresentation({
         <QuestionView 
           question={currentQuestion} 
           isOwner={isOwner} 
+          remainingTime={remainingTime ?? undefined}
+          isActive={activeQuestionId === currentQuestion.id}
         />
 
         <div className="absolute bottom-6 right-6 flex gap-4">

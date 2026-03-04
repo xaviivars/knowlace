@@ -33,6 +33,7 @@ type Props = {
   questions: QuestionWithOptions[]
   participantId: string | null
   activeQuestionId: string | null
+  remainingTime: number | null
 }
 
 export default function PresentationArea({
@@ -48,7 +49,8 @@ export default function PresentationArea({
   onPageChange,
   questions,
   participantId,
-  activeQuestionId
+  activeQuestionId,
+  remainingTime
 }: Props) {
 
   const currentQuestion = questions.find(
@@ -110,7 +112,7 @@ export default function PresentationArea({
   return (
     <div className="flex-1 min-h-screen bg-[#0b162c]">
       {currentQuestion ? (
-        <QuestionView question={currentQuestion} participantId={participantId ?? undefined}/>
+        <QuestionView question={currentQuestion} participantId={participantId ?? undefined} remainingTime={remainingTime ?? undefined}/>
       ) : (
       <PdfViewer
         accessCode={accessCode}

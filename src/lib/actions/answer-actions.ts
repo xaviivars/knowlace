@@ -20,6 +20,12 @@ export async function submitAnswer({
     throw new Error("La pregunta no está activa")
   }
 
+  const now = new Date()
+
+  if (question.endedAt && question.endedAt < now) {
+    throw new Error("El tiempo ha terminado")
+  }
+
   const participant = await prisma.participant.findUnique({
     where: { id: participantId },
   })

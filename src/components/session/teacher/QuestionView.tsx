@@ -21,12 +21,16 @@ type QuestionViewProps = {
   question: QuestionWithOptions
   isOwner?: boolean
   participantId?: string 
+  remainingTime?: number
+  isActive?: boolean
 }
 
 export function QuestionView({
   question,
   isOwner = false,
   participantId,
+  remainingTime,
+  isActive = false
 }: QuestionViewProps) {
 
   const [selected, setSelected] = useState<string | null>(null)
@@ -54,7 +58,9 @@ export function QuestionView({
         } else {
           alert("Incorrecta")
         }
-
+        
+        if (remainingTime === 0) return
+        
         const socket = getSocket()
         socket.emit("answer-submitted", {
           sessionId: result.sessionId,
@@ -67,8 +73,14 @@ export function QuestionView({
   }
   
   return (
-    <div className="min-h-screen bg-[#0b162c] text-white flex items-center justify-center px-6">
+    <div className="relative min-h-screen bg-[#0b162c] text-white flex items-center justify-center px-6">
       <div className="w-full max-w-4xl space-y-10">
+
+        {isActive && remainingTime !== null && (
+          <div className="absolute top-6 left-6 bg-black/40 px-4 py-2 rounded-xl text-lg font-semibold">
+            ⏱ {remainingTime}s
+          </div>
+        )}
 
         <div className="text-center space-y-4">
           <h2 className="text-4xl font-bold leading-tight">
