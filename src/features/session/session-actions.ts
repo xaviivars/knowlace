@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { generateAccessCode } from "@/features/session/generateAccessCode"
+import { generateAccessCode } from "@/lib/utils/generateAccessCode"
 
 export async function createSession(title: string, description?: string) {
   const session = await auth.api.getSession({

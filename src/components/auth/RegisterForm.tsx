@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { signUp } from "@/lib/actions/auth-actions"
+import { signUp } from "@/features/auth/auth-actions"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { SocialAuthButton } from "./SocialAuthButton"

@@ -2,7 +2,7 @@
 
 import { SidebarItem } from "@/components/ui/SidebarItem"
 import { Cog8ToothIcon, MagnifyingGlassIcon, SquaresPlusIcon } from "@heroicons/react/24/outline";
-import { signOut } from "@/lib/actions/auth-actions"
+import { signOut } from "@/features/auth/auth-actions"
 
 export default function DashboardLayout({
   children,

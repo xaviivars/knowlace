@@ -1,6 +1,6 @@
 "use client"
 
-import { signInSocial } from "@/lib/actions/auth-actions"
+import { signInSocial } from "@/features/auth/auth-actions"
 
 type SocialAuthButtonProps = {
   provider: "google",
