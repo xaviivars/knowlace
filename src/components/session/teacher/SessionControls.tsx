@@ -1,6 +1,6 @@
 "use client"
 
-import { toggleSession } from "@/lib/actions/session-actions"
+import { toggleSession } from "@/features/session/session-actions"
 import { getSocket } from "@/lib/socket"
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"

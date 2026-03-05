@@ -3,21 +3,11 @@
 import dynamic from "next/dynamic"
 import { QuestionView } from "@/components/session/teacher/QuestionView"
 import QuestionResultsView from "@/components/session/QuestionResultsView"
+import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 
 const PdfViewer = dynamic(() => import("../PdfViewer"), {
   ssr: false,
 })
-
-type QuestionWithOptions = {
-  id: string
-  content: string
-  pageNumber: number
-  options: {
-    id: string
-    content: string
-    isCorrect: boolean
-  }[]
-}
 
 type Props = {
   joined: boolean
@@ -35,12 +25,7 @@ type Props = {
   participantId: string | null
   activeQuestionId: string | null
   remainingTime: number | null
-  stats: {
-    totalAnswers: number
-    correctAnswers: number
-    percentage: number
-    optionCounts: Record<string, number>
-  } | null
+  stats: QuestionStats | null
 }
 
 export default function PresentationArea({

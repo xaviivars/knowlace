@@ -3,35 +3,12 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getSocket } from "@/lib/socket"
-import { joinSession, reconnectParticipant, leaveParticipant } from "@/lib/actions/session-actions"
+import { joinSession, reconnectParticipant, leaveParticipant } from "@/features/session/session-actions"
 import { useRef } from "react"
 import PresentationArea from "@/components/session/student/PresentationArea"
 import Sidebar from "@/components/session/Sidebar"
-import Link from "next/link"
-
-type Participant = {
-  id: string
-  name: string
-  score?: number
-}
-
-type QuestionWithOptions = {
-  id: string
-  content: string
-  pageNumber: number
-  options: {
-    id: string
-    content: string
-    isCorrect: boolean
-  }[]
-}
-
-type Stats = {
-  totalAnswers: number
-  correctAnswers: number
-  percentage: number
-  optionCounts: Record<string, number>
-}
+import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
+import { Participant } from "@/features/participant/participant.types"
 
 export default function SessionClient({
   sessionTitle,
@@ -64,7 +41,7 @@ export default function SessionClient({
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
 
   const [statsByQuestion, setStatsByQuestion] = useState<
-    Record<string, Stats>
+    Record<string, QuestionStats>
   >({})
 
   useEffect(() => {

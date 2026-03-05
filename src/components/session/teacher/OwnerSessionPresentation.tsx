@@ -5,26 +5,9 @@ import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
 import { QuestionView } from "@/components/session/teacher/QuestionView"
 import QuestionResultsView from "@/components/session/QuestionResultsView"
+import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 
 const PdfViewer = dynamic(() => import("../PdfViewer"), { ssr: false })
-
-type QuestionWithOptions = {
-  id: string
-  content: string
-  pageNumber: number
-  options: {
-    id: string
-    content: string
-    isCorrect: boolean
-  }[]
-}
-
-type Stats = {
-  totalAnswers: number
-  correctAnswers: number
-  percentage: number
-  optionCounts: Record<string, number>
-}
 
 export default function OwnerSessionPresentation({
   accessCode,
@@ -49,7 +32,7 @@ export default function OwnerSessionPresentation({
   const [countdown, setCountdown] = useState<number | null>(null)
 
   const [statsByQuestion, setStatsByQuestion] = useState<
-    Record<string, Stats>
+    Record<string, QuestionStats>
   >({})
 
   const [remainingTime, setRemainingTime] = useState<number | null>(null)

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { createQuestionAction } from "@/lib/actions/question-actions"
+import { createQuestionAction } from "@/features/question/question-actions"
 import { useRouter } from "next/navigation"
 
 export default function CreateQuestionModal({

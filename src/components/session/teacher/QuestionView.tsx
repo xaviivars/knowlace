@@ -1,21 +1,9 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { submitAnswer } from "@/lib/actions/answer-actions"
+import { submitAnswer } from "@/features/answer/answer-actions"
 import { getSocket } from "@/lib/socket"
-
-type QuestionOption = {
-  id: string
-  content: string
-  isCorrect: boolean
-}
-
-type QuestionWithOptions = {
-  id: string
-  content: string
-  pageNumber: number
-  options: QuestionOption[]
-}
+import { QuestionWithOptions } from "@/features/question/question.types"
 
 type QuestionViewProps = {
   question: QuestionWithOptions

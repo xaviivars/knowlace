@@ -3,7 +3,7 @@ import { createServer } from "http"
 import next from "next"
 import { Server } from "socket.io"
 import { prisma } from "@/lib/prisma"
-import { getParticipantsByAccessCode, getLeaderboardByAccessCode, getQuestionStats } from "@/lib/services/session-service"
+import { getParticipantsByAccessCode, getLeaderboardByAccessCode, getQuestionStats } from "@/features/session/session-service"
 import { auth } from "@/lib/auth"
 
 const dev = process.env.NODE_ENV !== "production"

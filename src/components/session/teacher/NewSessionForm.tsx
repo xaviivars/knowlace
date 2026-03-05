@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createSession } from "@/lib/actions/session-actions"
+import { createSession } from "@/features/session/session-actions"
 import { useRouter } from "next/navigation"
 
 export default function NewSessionForm() {
