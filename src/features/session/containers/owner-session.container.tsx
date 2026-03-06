@@ -1,7 +1,7 @@
 "use client"
 
 import { QuestionWithOptions } from "@/features/question/question.types"
-import OwnerSessionLayout from "@/features/session/components/owner-session.layout"
+import OwnerSessionLayout from "@/features/session/owner-session.layout"
 
 export default function OwnerSessionContainer({
   sessionId,

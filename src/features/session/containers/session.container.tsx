@@ -7,7 +7,7 @@ import { getSocket } from "@/lib/socket"
 
 import { joinSession, reconnectParticipant, leaveParticipant } from "@/features/session/session-actions"
 
-import SessionLayout from "@/features/session/components/session.layout"
+import SessionLayout from "@/features/session/session.layout"
 
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
