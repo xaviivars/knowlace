@@ -1,12 +1,14 @@
 "use client"
 
-import { getSocket } from "@/lib/socket"
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
+
 import IdleQuestionView from "@/features/session/components/IdleQuestionView"
 import ActiveQuestionView from "@/features/session/components/ActiveQuestionView"
 import ResultsQuestionView from "@/features/session/components/ResultsQuestionView"
 import CountdownOverlay from "@/features/session/components/CountdownOverlay"
+
+import { useOwnerSession } from "@/features/session/hooks/useOwnerSession"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 
 const PdfViewer = dynamic(() => import("@/components/session/PdfViewer"), { ssr: false })
@@ -29,129 +31,36 @@ export default function OwnerSessionPresentation({
   questions: QuestionWithOptions[]
 }) {
 
+  const {
+    socket,
+    state,
+    countdown,
+    remainingTime,
+    statsByQuestion
+  } = useOwnerSession(accessCode)
+
   const [pageNumber, setPageNumber] = useState(initialPage)
-  const [state, setState] = useState<QuestionState>("idle")
-
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
-  const [countdown, setCountdown] = useState<number | null>(null)
-  const [remainingTime, setRemainingTime] = useState<number | null>(null)
-
-  const [statsByQuestion, setStatsByQuestion] = useState<
-    Record<string, QuestionStats>
-  >({})
 
   const currentQuestion = questions.find(
     q => q.pageNumber === pageNumber
   )
 
-  const socket = getSocket()
-
   useEffect(() => {
-
-    socket.emit("owner-join", accessCode)
 
     socket.on("page-updated", (newPage: number) => {
       setPageNumber(newPage)
     })
 
-    socket.on("question-countdown", ({ seconds }) => {
-
-      setCountdown(seconds)
-      setState("countdown")
-
-      let current = seconds
-
-      const interval = setInterval(() => {
-        current -= 1
-
-        if (current <= 0) {
-          clearInterval(interval)
-          setCountdown(null)
-        } else {
-          setCountdown(current)
-        }
-
-      }, 1000)
-
-    })
-
-    socket.on("question-started", ({ questionId, timeLimit, startedAt }) => {
-
-      setActiveQuestionId(questionId)
-      setState("active")
-
-      const start = new Date(startedAt).getTime()
-      const end = start + timeLimit * 1000
-
-      const updateTimer = () => {
-
-        const now = Date.now()
-        const remaining = Math.max(
-          0,
-          Math.floor((end - now) / 1000)
-        )
-
-        setRemainingTime(remaining)
-
-        if (remaining <= 0) {
-          clearInterval(interval)
-        }
-      }
-
-      updateTimer()
-
-      const interval = setInterval(updateTimer, 1000)
-
-    })
-
-    socket.on("question-ended", () => {
-      setState("results")
-      setActiveQuestionId(null)
-      setRemainingTime(null)
-    })
-
-    socket.on("question-stats-updated", (data) => {
-
-      setStatsByQuestion(prev => ({
-        ...prev,
-        [data.questionId]: data
-      }))
-
-    })
-
-    socket.on("question-reset", () => {
-      setState("idle")
-      setActiveQuestionId(null)
-      setRemainingTime(null)
-
-      setStatsByQuestion(prev => {
-        const copy = { ...prev }
-        delete copy[currentQuestion?.id ?? ""]
-        return copy
-      })
-    })
-
     return () => {
       socket.off("page-updated")
-      socket.off("question-started")
-      socket.off("question-ended")
-      socket.off("question-countdown")
-      socket.off("question-stats-updated")
-      socket.off("question-reset")
     }
-  }, [accessCode])
 
-  const handlePageChange = (newPage: number) => {
+  }, [socket])
 
+  function handlePageChange(newPage: number) {
     setPageNumber(newPage)
 
-    setState("idle")
-    setActiveQuestionId(null)
-    setRemainingTime(null)
-
-    const socket = getSocket()
     socket.emit("page-changed", newPage)
-
   }
 
   const currentStats = currentQuestion
@@ -222,38 +131,8 @@ export default function OwnerSessionPresentation({
     }
 
     return (
-        <div className="relative w-full max-w-7xl flex h-full flex-col">
-
-          {renderContent()}
-
-          {currentQuestion && state === "idle" && (
-            <div className="absolute top-6 right-6 z-20">
-              <button
-                onClick={() => {
-                  const socket = getSocket()
-                  socket.emit("launch-question")
-                }}
-                className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold"
-              >
-                Lanzar pregunta
-              </button>
-            </div>
-          )}
-
-          {currentQuestion && state === "active" && (
-            <div className="absolute top-6 right-6 z-20">
-              <button
-                onClick={() => {
-                  const socket = getSocket()
-                  socket.emit("end-question")
-                }}
-                className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-semibold"
-              >
-                Finalizar pregunta
-              </button>
-            </div>
-          )}
-
-        </div>
+      <div className="relative w-full max-w-7xl flex h-full flex-col">
+        {renderContent()}
+      </div>
     )
 }
