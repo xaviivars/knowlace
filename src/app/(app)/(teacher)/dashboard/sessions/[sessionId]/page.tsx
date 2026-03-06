@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import SessionControls from "@/components/session/teacher/SessionControls"
-import OwnerSessionPresentation from "@/components/session/teacher/OwnerSessionPresentation"
+import { notFound } from "next/navigation"
+import OwnerSessionContainer from "@/features/session/containers/owner-session.container"
 
 export default async function SessionPage({
   params,
@@ -21,24 +21,18 @@ export default async function SessionPage({
   })
 
   if (!session) {
-    return <div>Sesión no encontrada</div>
+    notFound()
   }
 
   return (
-    <div>
-      <h1>{session.title}</h1>
-      <h1>{session.description}</h1>
-      <SessionControls
-        sessionId={session.id}
-        accessCode={session.accessCode}
-        initialIsActive={session.isActive}
-      />
-      <OwnerSessionPresentation
-        accessCode={session.accessCode}
-        initialPage={session.currentPage}
-        isOwner={true}
-        questions={session.questions}
-      />
-    </div>
+    <OwnerSessionContainer
+      sessionId={session.id}
+      accessCode={session.accessCode}
+      title={session.title}
+      description={session.description}
+      initialIsActive={session.isActive}
+      initialPage={session.currentPage}
+      questions={session.questions}
+    />
   )
 }
