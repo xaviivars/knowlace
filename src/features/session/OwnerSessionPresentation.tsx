@@ -10,6 +10,7 @@ import CountdownOverlay from "@/features/session/components/CountdownOverlay"
 
 import { useOwnerSession } from "@/features/session/hooks/useOwnerSession"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
+import { useQuestionStats } from "./hooks/useQuestionStats"
 
 const PdfViewer = dynamic(() => import("@/components/session/PdfViewer"), { ssr: false })
 
@@ -36,7 +37,6 @@ export default function OwnerSessionPresentation({
     state,
     countdown,
     remainingTime,
-    statsByQuestion
   } = useOwnerSession(accessCode)
 
   const [pageNumber, setPageNumber] = useState(initialPage)
@@ -45,27 +45,34 @@ export default function OwnerSessionPresentation({
     q => q.pageNumber === pageNumber
   )
 
+  const { stats, refetchStats } = useQuestionStats(
+    currentQuestion?.id ?? null
+  )
+
   useEffect(() => {
 
     socket.on("page-updated", (newPage: number) => {
       setPageNumber(newPage)
     })
 
+    socket.on("question-stats-updated", ({ questionId }) => {
+      if (questionId === currentQuestion?.id) {
+        refetchStats()
+      }
+    })
+
     return () => {
       socket.off("page-updated")
+      socket.off("question-stats-updated")
     }
 
-  }, [socket])
+  }, [socket, currentQuestion])
 
   function handlePageChange(newPage: number) {
     setPageNumber(newPage)
 
     socket.emit("page-changed", newPage)
   }
-
-  const currentStats = currentQuestion
-    ? statsByQuestion[currentQuestion.id]
-    : null
 
   function renderContent() {
 
@@ -99,14 +106,14 @@ export default function OwnerSessionPresentation({
 
         case "results":
 
-          if (!currentStats) {
+          if (!stats) {
             return <div className="text-white text-center py-10">Cargando resultados...</div>
           }
       
           return (
             <ResultsQuestionView
               question={currentQuestion}
-              stats={currentStats ?? undefined}
+              stats={stats}
               pageNumber={pageNumber}
               onNext={() => handlePageChange(pageNumber + 1)}
               onPrevious={() => handlePageChange(pageNumber - 1)}

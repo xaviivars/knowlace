@@ -39,13 +39,10 @@ export async function syncActiveQuestion(socket: Socket, sessionId: string) {
       data: { isActive: false },
     })
 
-    const stats = await getQuestionStats(activeQuestion.id)
-
     socket.emit("question-ended")
 
     socket.emit("question-stats-updated", {
       questionId: activeQuestion.id,
-      ...stats
     })
 
   }

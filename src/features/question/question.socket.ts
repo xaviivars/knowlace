@@ -37,11 +37,8 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
         io.to(accessCode).emit("leaderboard-updated", leaderboard)
     }
 
-    const stats = await getQuestionStats(activeQuestion.id)
-
     io.to(accessCode).emit("question-stats-updated", {
-        questionId: activeQuestion.id,
-        ...stats
+        questionId: activeQuestion.id
     })
 
   })
@@ -112,13 +109,10 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
             data: { isActive: false },
         })
 
-        const stats = await getQuestionStats(question.id)
-
         io.to(accessCode).emit("question-ended")
 
         io.to(accessCode).emit("question-stats-updated", {
             questionId: question.id,
-            ...stats
         })
 
         }, timeLimit * 1000)
@@ -157,12 +151,9 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
     },
     })
 
-    const stats = await getQuestionStats(activeQuestion.id)
-
     io.to(accessCode).emit("question-ended")
     io.to(accessCode).emit("question-stats-updated", {
     questionId: activeQuestion.id,
-    ...stats
     })
 
   })
@@ -188,11 +179,8 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
 
     if (!question.isActive && question.endedAt) {
 
-        const stats = await getQuestionStats(question.id)
-
         socket.emit("question-stats-updated", {
         questionId: question.id,
-        ...stats
         })
 
     }

@@ -11,6 +11,7 @@ import SessionLayout from "@/features/session/session.layout"
 
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
+import { useQuestionStats } from "../hooks/useQuestionStats"
 
 type Props = {
   sessionTitle: string
@@ -53,10 +54,6 @@ export default function SessionContainer({
   const [countdown, setCountdown] = useState<number | null>(null)
 
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
-
-  const [statsByQuestion, setStatsByQuestion] = useState<
-    Record<string, QuestionStats>
-  >({})
 
   useEffect(() => {
 
@@ -208,12 +205,11 @@ export default function SessionContainer({
 
     })
 
-    socket.on("question-stats-updated", (data) => {
+    socket.on("question-stats-updated", ({ questionId }) => {
 
-      setStatsByQuestion(prev => ({
-        ...prev,
-        [data.questionId]: data
-      }))
+      if (questionId === activeQuestionId) {
+        refetchStats()
+      }
 
     })
 
@@ -323,14 +319,9 @@ export default function SessionContainer({
 
   }
 
-
-  const currentQuestion = questions.find(
-    q => q.pageNumber === localPage
+  const { stats, refetchStats } = useQuestionStats(
+    activeQuestionId
   )
-
-  const currentStats = currentQuestion
-    ? statsByQuestion[currentQuestion.id]
-    : null
 
 
   return (
@@ -373,7 +364,7 @@ export default function SessionContainer({
 
       remainingTime={remainingTime}
 
-      stats={currentStats}
+      stats={stats}
 
       countdown={countdown}
 

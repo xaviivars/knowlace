@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { getSocket } from "@/lib/socket"
-import { QuestionStats } from "@/features/question/question.types"
+import { useQuestionStats } from "./useQuestionStats"
 
 export type QuestionState =
   | "idle"
@@ -17,10 +17,6 @@ export function useOwnerSession(accessCode: string) {
   const [state, setState] = useState<QuestionState>("idle")
   const [countdown, setCountdown] = useState<number | null>(null)
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
-
-  const [statsByQuestion, setStatsByQuestion] = useState<
-    Record<string, QuestionStats>
-  >({})
 
   useEffect(() => {
 
@@ -87,11 +83,6 @@ export function useOwnerSession(accessCode: string) {
 
     socket.on("question-stats-updated", (data) => {
 
-      setStatsByQuestion(prev => ({
-        ...prev,
-        [data.questionId]: data
-      }))
-
     })
 
     socket.on("question-reset", () => {
@@ -118,7 +109,6 @@ export function useOwnerSession(accessCode: string) {
     state,
     countdown,
     remainingTime,
-    statsByQuestion
   }
 
 }

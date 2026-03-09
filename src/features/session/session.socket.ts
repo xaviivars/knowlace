@@ -163,11 +163,8 @@ export function registerSessionSockets(io: Server, socket: Socket) {
 
     if (question && question.endedAt) {
 
-        const stats = await getQuestionStats(question.id)
-
         io.to(accessCode).emit("question-stats-updated", {
-        questionId: question.id,
-        ...stats
+          questionId: question.id,
         })
     }
 
