@@ -6,6 +6,7 @@ import StudentQuestionView from "@/features/session/components/StudentQuestionVi
 import StudentResultsView from "@/features/session/components/StudentResultsView"
 import StudentPdfView from "@/features/session/components/StudentPdfView"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
+import { useMemo } from "react"
 
 type Props = {
   joined: boolean
@@ -51,10 +52,13 @@ export default function PresentationArea({
   stats
 }: Props) {
 
-  const currentQuestion = questions.find(
-    (q) =>
-      q.pageNumber === pageNumber 
-  )
+  const questionMap = useMemo(() => {
+    return Object.fromEntries(
+      questions.map(q => [q.pageNumber, q])
+    )
+  }, [questions])
+
+  const currentQuestion = questionMap[pageNumber]
 
   return (
     

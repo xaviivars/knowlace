@@ -13,6 +13,8 @@ import { QuestionWithOptions, QuestionStats } from "@/features/question/question
 import { Participant } from "@/features/participant/participant.types"
 import { useQuestionStats } from "../hooks/useQuestionStats"
 
+import { useMemo } from "react"
+
 type Props = {
   sessionTitle: string
   accessCode: string

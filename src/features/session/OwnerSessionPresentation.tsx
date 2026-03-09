@@ -12,6 +12,8 @@ import { useOwnerSession } from "@/features/session/hooks/useOwnerSession"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 import { useQuestionStats } from "./hooks/useQuestionStats"
 
+import { useMemo } from "react"
+
 const PdfViewer = dynamic(() => import("@/components/session/PdfViewer"), { ssr: false })
 
 type QuestionState =
@@ -41,9 +43,13 @@ export default function OwnerSessionPresentation({
 
   const [pageNumber, setPageNumber] = useState(initialPage)
 
-  const currentQuestion = questions.find(
-    q => q.pageNumber === pageNumber
-  )
+  const questionMap = useMemo(() => {
+    return Object.fromEntries(
+      questions.map(q => [q.pageNumber, q])
+    )
+  }, [questions])
+
+  const currentQuestion = questionMap[pageNumber]
 
   const { stats, refetchStats } = useQuestionStats(
     currentQuestion?.id ?? null
