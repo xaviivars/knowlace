@@ -7,6 +7,7 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
   socket.on("answer-submitted", async () => {
 
     const accessCode = socket.data.accessCode
+
     if (!accessCode) return
     if (socket.data.role !== "participant") return
 
@@ -18,8 +19,8 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
 
     const activeQuestion = await prisma.question.findFirst({
         where: {
-        sessionId: session.id,
-        isActive: true,
+            sessionId: session.id,
+            status: "ACTIVE",
         },
     })
 
@@ -57,15 +58,23 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
 
     if (!session) return
 
-    const question = session.questions.find(
-        (q) => q.pageNumber === session.currentPage
-    )
+    const question = await prisma.question.findFirst({
+        where: {
+            sessionId: session.id,
+            pageNumber: session.currentPage
+        }
+    })
 
     if (!question) return
-    if (question.isActive) return
+    if (question.status !== "IDLE") return
 
     io.to(accessCode).emit("question-countdown", {
         seconds: 3,
+    })
+
+    await prisma.question.update({
+        where: { id: question.id },
+        data: { status: "COUNTDOWN" }
     })
 
     const COUNTDOWN = 3000
@@ -90,7 +99,7 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
         await prisma.question.update({
         where: { id: question.id },
         data: {
-            isActive: true,
+            status: "ACTIVE",
             startedAt: now,
             endedAt,
         },
@@ -106,7 +115,7 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
 
         await prisma.question.update({
             where: { id: question.id },
-            data: { isActive: false },
+            data: { status: "RESULTS", },
         })
 
         io.to(accessCode).emit("question-ended")
@@ -129,14 +138,14 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
     if (socket.data.role !== "owner") return
 
     const session = await prisma.teachingSession.findUnique({
-    where: { accessCode },
-    include: { questions: true },
+        where: { accessCode },
+        include: { questions: true },
     })
 
     if (!session) return
 
     const activeQuestion = session.questions.find(
-    q => q.isActive === true
+        q => q.status === "ACTIVE"
     )
 
     if (!activeQuestion) return
@@ -144,11 +153,11 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
     const now = new Date()
 
     await prisma.question.update({
-    where: { id: activeQuestion.id },
-    data: {
-        isActive: false,
-        endedAt: now,
-    },
+        where: { id: activeQuestion.id },
+        data: {
+            status: "RESULTS",
+            endedAt: now,
+        },
     })
 
     io.to(accessCode).emit("question-ended")
@@ -177,7 +186,7 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
 
     if (!question) return
 
-    if (!question.isActive && question.endedAt) {
+    if (question.status === "RESULTS") {
 
         socket.emit("question-stats-updated", {
         questionId: question.id,
@@ -216,7 +225,7 @@ export function registerQuestionSockets(io: Server, socket: Socket) {
     await prisma.question.update({
         where: { id: question.id },
         data: {
-        isActive: false,
+        status: "IDLE",
         startedAt: null,
         endedAt: null
         }

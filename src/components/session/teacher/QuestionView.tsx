@@ -50,9 +50,7 @@ export function QuestionView({
         if (remainingTime === 0) return
         
         const socket = getSocket()
-        socket.emit("answer-submitted", {
-          sessionId: result.sessionId,
-        })
+        socket.emit("answer-submitted")
 
       } catch (err: any) {
         alert(err.message)

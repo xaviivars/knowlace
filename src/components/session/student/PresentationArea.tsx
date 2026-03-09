@@ -6,7 +6,7 @@ import StudentQuestionView from "@/features/session/components/StudentQuestionVi
 import StudentResultsView from "@/features/session/components/StudentResultsView"
 import StudentPdfView from "@/features/session/components/StudentPdfView"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
 
 type Props = {
   joined: boolean
@@ -24,10 +24,10 @@ type Props = {
   questions: QuestionWithOptions[]
 
   participantId: string | null
-  activeQuestionId: string | null
   remainingTime: number | null
 
   stats: QuestionStats | null
+  refetchStats?: () => void
 }
 
 export default function PresentationArea({
@@ -46,10 +46,10 @@ export default function PresentationArea({
   questions,
 
   participantId,
-  activeQuestionId,
   remainingTime,
 
-  stats
+  stats,
+  refetchStats
 }: Props) {
 
   const questionMap = useMemo(() => {
@@ -59,6 +59,14 @@ export default function PresentationArea({
   }, [questions])
 
   const currentQuestion = questionMap[pageNumber]
+
+  useEffect(() => {
+
+    if (currentQuestion?.status === "RESULTS" && !stats) {
+      refetchStats?.()
+    }
+
+  }, [currentQuestion?.status, stats])
 
   return (
     
@@ -83,7 +91,7 @@ export default function PresentationArea({
 
       {/* Sesión activa */}
 
-      {joined && isActive && currentQuestion && activeQuestionId === currentQuestion.id && (
+      {joined && isActive && currentQuestion?.status === "ACTIVE" && (
         <StudentQuestionView
           question={currentQuestion}
           participantId={participantId}
@@ -93,16 +101,22 @@ export default function PresentationArea({
 
       {/* RESULTS */}
 
-      {joined && isActive && currentQuestion && stats && activeQuestionId === null && (
+      {joined && isActive && currentQuestion?.status === "RESULTS" && stats && (
         <StudentResultsView
           question={currentQuestion}
           stats={stats}
         />
       )}
 
+      {joined && isActive && currentQuestion?.status === "RESULTS" && !stats && (
+        <div className="text-white text-center py-10">
+          Cargando resultados...
+        </div>
+      )}
+
       {/* PDF */}
 
-      {joined && isActive && (!currentQuestion || (activeQuestionId !== currentQuestion.id && !stats)) && (
+      {joined && isActive && (!currentQuestion || currentQuestion.status === "IDLE" || currentQuestion.status === "COUNTDOWN") && (
 
         <>
           <div className="flex-1">
@@ -114,29 +128,30 @@ export default function PresentationArea({
             />
 
           </div>
-
-          <div className="w-full flex justify-end gap-4 px-6 py-6">
-
-            {pageNumber > 1 && (
-              <button
-                onClick={() => onPageChange(pageNumber - 1)}
-                className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
-              >
-                Anterior
-              </button>
-            )}
-
-            <button
-              onClick={() => onPageChange(pageNumber + 1)}
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
-            >
-              Siguiente
-            </button>
-
-          </div>
         </>
       )}
+      
+      {joined && isActive && (
+        <div className="w-full flex justify-end gap-4 px-6 py-6">
 
+              {pageNumber > 1 && (
+                <button
+                  onClick={() => onPageChange(pageNumber - 1)}
+                  className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
+                >
+                  Anterior
+                </button>
+              )}
+
+              <button
+                onClick={() => onPageChange(pageNumber + 1)}
+                className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
+              >
+                Siguiente
+              </button>
+
+          </div>
+      )}
     </div>
   )
 }

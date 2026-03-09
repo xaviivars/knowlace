@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 
 import { getSocket } from "@/lib/socket"
 
@@ -9,11 +9,9 @@ import { joinSession, reconnectParticipant, leaveParticipant } from "@/features/
 
 import SessionLayout from "@/features/session/session.layout"
 
-import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
+import { QuestionWithOptions } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
 import { useQuestionStats } from "../hooks/useQuestionStats"
-
-import { useMemo } from "react"
 
 type Props = {
   sessionTitle: string
@@ -49,13 +47,25 @@ export default function SessionContainer({
 
   const isFollowingTeacher = localPage === teacherPage
 
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
-
   const [leaderboard, setLeaderboard] = useState<Participant[]>([])
 
   const [countdown, setCountdown] = useState<number | null>(null)
 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
+  
+  const questionMap = useMemo(() => {
+    return Object.fromEntries(
+      questions.map(q => [q.pageNumber, q])
+    )
+  }, [questions])
+
+  const currentQuestion = questionMap[localPage]
+
+  const { stats, refetchStats } = useQuestionStats(
+    currentQuestion?.id ?? null
+  )
 
   useEffect(() => {
 
@@ -136,15 +146,12 @@ export default function SessionContainer({
 
     })
 
-    socket.on("question-started", ({ questionId, timeLimit, startedAt }) => {
+    socket.on("question-started", ({ timeLimit, startedAt }) => {
 
-      setActiveQuestionId(questionId)
+      router.refresh()
 
       const start = new Date(startedAt).getTime()
-
       const end = start + timeLimit * 1000
-
-      let interval: NodeJS.Timeout
 
       const updateTimer = () => {
 
@@ -157,22 +164,33 @@ export default function SessionContainer({
 
         setRemainingTime(remaining)
 
-        if (remaining <= 0) {
-          clearInterval(interval)
+        if (remaining <= 0 && intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
         }
 
       }
 
       updateTimer()
 
-      interval = setInterval(updateTimer, 1000)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+
+      intervalRef.current = setInterval(updateTimer, 1000)
 
     })
 
     socket.on("question-ended", () => {
 
-      setActiveQuestionId(null)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+
       setRemainingTime(null)
+      router.refresh()
 
     })
 
@@ -207,15 +225,15 @@ export default function SessionContainer({
 
     })
 
-    socket.on("question-stats-updated", ({ questionId }) => {
-
-      if (questionId === activeQuestionId) {
+    socket.on("question-stats-updated", () => {
         refetchStats()
-      }
-
     })
 
     return () => {
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
 
       socket.off("participants-list")
       socket.off("session-started")
@@ -265,7 +283,6 @@ export default function SessionContainer({
     }
 
   }
-
 
   const handleLeave = async () => {
 
@@ -321,59 +338,31 @@ export default function SessionContainer({
 
   }
 
-  const { stats, refetchStats } = useQuestionStats(
-    activeQuestionId
-  )
-
-
   return (
 
     <SessionLayout
-
       sessionTitle={sessionTitle}
-
       participants={participants}
-
       leaderboard={leaderboard}
-
       joined={joined}
-
       isActive={isActive}
-
       name={name}
-
       setName={setName}
-
       error={error}
-
       onJoin={handleJoin}
-
       onLeave={handleLeave}
-
       onGoHome={handleGoHome}
-
       accessCode={accessCode}
-
       pageNumber={localPage}
-
       onPageChange={handlePageChange}
-
       questions={questions}
-
       participantId={participantIdRef.current}
-
-      activeQuestionId={activeQuestionId}
-
       remainingTime={remainingTime}
-
       stats={stats}
-
       countdown={countdown}
-
       isFollowingTeacher={isFollowingTeacher}
-
       teacherPage={teacherPage}
-
+      refetchStats={refetchStats}
     />
 
   )

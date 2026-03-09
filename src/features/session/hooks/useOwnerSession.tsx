@@ -2,19 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { getSocket } from "@/lib/socket"
-import { useQuestionStats } from "./useQuestionStats"
-
-export type QuestionState =
-  | "idle"
-  | "countdown"
-  | "active"
-  | "results"
 
 export function useOwnerSession(accessCode: string) {
 
   const socket = getSocket()
 
-  const [state, setState] = useState<QuestionState>("idle")
   const [countdown, setCountdown] = useState<number | null>(null)
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
 
@@ -25,7 +17,6 @@ export function useOwnerSession(accessCode: string) {
     socket.on("question-countdown", ({ seconds }) => {
 
       setCountdown(seconds)
-      setState("countdown")
 
       let current = seconds
 
@@ -45,8 +36,6 @@ export function useOwnerSession(accessCode: string) {
     })
 
     socket.on("question-started", ({ timeLimit, startedAt }) => {
-
-      setState("active")
 
       const start = new Date(startedAt).getTime()
       const end = start + timeLimit * 1000
@@ -76,7 +65,6 @@ export function useOwnerSession(accessCode: string) {
 
     socket.on("question-ended", () => {
 
-      setState("results")
       setRemainingTime(null)
 
     })
@@ -87,7 +75,6 @@ export function useOwnerSession(accessCode: string) {
 
     socket.on("question-reset", () => {
 
-      setState("idle")
       setRemainingTime(null)
 
     })
@@ -106,7 +93,6 @@ export function useOwnerSession(accessCode: string) {
 
   return {
     socket,
-    state,
     countdown,
     remainingTime,
   }

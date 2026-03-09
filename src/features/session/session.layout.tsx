@@ -30,7 +30,6 @@ type Props = {
   questions: QuestionWithOptions[]
 
   participantId: string | null
-  activeQuestionId: string | null
   remainingTime: number | null
 
   stats: QuestionStats | null
@@ -39,6 +38,8 @@ type Props = {
 
   isFollowingTeacher: boolean
   teacherPage: number
+
+  refetchStats: () => void
 }
 
 export default function SessionLayout({
@@ -64,7 +65,6 @@ export default function SessionLayout({
   questions,
 
   participantId,
-  activeQuestionId,
   remainingTime,
   stats,
 
@@ -72,6 +72,7 @@ export default function SessionLayout({
 
   isFollowingTeacher,
   teacherPage,
+  refetchStats
 }: Props) {
 
   return (
@@ -133,10 +134,10 @@ export default function SessionLayout({
           questions={questions}
 
           participantId={participantId}
-          activeQuestionId={activeQuestionId}
           remainingTime={remainingTime}
 
           stats={stats}
+          refetchStats={refetchStats}
         />
 
         <Sidebar

@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { QuestionStats } from "@/features/question/question.types"
 
 export function useQuestionStats(questionId: string | null) {
 
-  const [stats, setStats] = useState(null)
+  const [stats, setStats] = useState<QuestionStats | null>(null)
 
   async function fetchStats() {
 

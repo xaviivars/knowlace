@@ -113,6 +113,13 @@ model Participant {
   @@index([sessionId])
 }
 
+enum QuestionStatus {
+  IDLE
+  COUNTDOWN
+  ACTIVE
+  RESULTS
+}
+
 model Question {
   id          String        @id @default(cuid())
   sessionId   String
@@ -121,6 +128,7 @@ model Question {
   pageNumber  Int
   timeLimit   Int?          
   createdAt   DateTime      @default(now())
+  status QuestionStatus @default(IDLE)
   answers Answer[]
 
   isActive    Boolean       @default(false)

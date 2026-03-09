@@ -11,12 +11,13 @@ export async function submitAnswer({
   questionId: string
   optionId: string
 }) {
+  
   const question = await prisma.question.findUnique({
     where: { id: questionId },
     include: { options: true },
   })
 
-  if (!question || !question.isActive) {
+  if (!question || question.status !== "ACTIVE" ) {
     throw new Error("La pregunta no está activa")
   }
 

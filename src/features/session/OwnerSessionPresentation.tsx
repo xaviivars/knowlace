@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import IdleQuestionView from "@/features/session/components/IdleQuestionView"
 import ActiveQuestionView from "@/features/session/components/ActiveQuestionView"
@@ -9,18 +9,11 @@ import ResultsQuestionView from "@/features/session/components/ResultsQuestionVi
 import CountdownOverlay from "@/features/session/components/CountdownOverlay"
 
 import { useOwnerSession } from "@/features/session/hooks/useOwnerSession"
-import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
+import { QuestionWithOptions } from "@/features/question/question.types"
 import { useQuestionStats } from "./hooks/useQuestionStats"
-
-import { useMemo } from "react"
+import { useRouter } from "next/navigation"
 
 const PdfViewer = dynamic(() => import("@/components/session/PdfViewer"), { ssr: false })
-
-type QuestionState =
-  | "idle"
-  | "countdown"
-  | "active"
-  | "results"
 
 export default function OwnerSessionPresentation({
   accessCode,
@@ -34,9 +27,10 @@ export default function OwnerSessionPresentation({
   questions: QuestionWithOptions[]
 }) {
 
+  const router = useRouter()
+
   const {
     socket,
-    state,
     countdown,
     remainingTime,
   } = useOwnerSession(accessCode)
@@ -57,22 +51,37 @@ export default function OwnerSessionPresentation({
 
   useEffect(() => {
 
-    socket.on("page-updated", (newPage: number) => {
+    const handlePageUpdated = (newPage: number) => {
       setPageNumber(newPage)
-    })
+    }
 
-    socket.on("question-stats-updated", ({ questionId }) => {
+    const handleStatsUpdated = ({ questionId }: { questionId: string }) => {
       if (questionId === currentQuestion?.id) {
         refetchStats()
       }
-    })
-
-    return () => {
-      socket.off("page-updated")
-      socket.off("question-stats-updated")
     }
 
-  }, [socket, currentQuestion])
+    const handleStateChange = () => {
+      router.refresh()
+    }
+
+    socket.on("page-updated", handlePageUpdated)
+    socket.on("question-stats-updated", handleStatsUpdated)
+
+    socket.on("question-started", handleStateChange)
+    socket.on("question-ended", handleStateChange)
+    socket.on("question-reset", handleStateChange)
+
+    return () => {
+      socket.off("page-updated", handlePageUpdated)
+      socket.off("question-stats-updated", handleStatsUpdated)
+
+      socket.off("question-started", handleStateChange)
+      socket.off("question-ended", handleStateChange)
+      socket.off("question-reset", handleStateChange)
+    }
+
+  }, [socket, currentQuestion?.id])
 
   function handlePageChange(newPage: number) {
     setPageNumber(newPage)
@@ -95,12 +104,12 @@ export default function OwnerSessionPresentation({
 
       }
 
-      switch (state) {
+      switch (currentQuestion.status) {
 
-        case "countdown":
+        case "COUNTDOWN":
           return <CountdownOverlay seconds={countdown} />
 
-        case "active":
+        case "ACTIVE":
           return (
             <ActiveQuestionView
               question={currentQuestion}
@@ -110,10 +119,14 @@ export default function OwnerSessionPresentation({
             />
           )
 
-        case "results":
+        case "RESULTS":
 
           if (!stats) {
-            return <div className="text-white text-center py-10">Cargando resultados...</div>
+            return (
+              <div className="text-white text-center py-10">
+                Cargando resultados...
+              </div>
+            )
           }
       
           return (
@@ -127,7 +140,7 @@ export default function OwnerSessionPresentation({
             />
           )
 
-        case "idle":
+        case "IDLE":
         default:
           return (
             <IdleQuestionView

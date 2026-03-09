@@ -9,6 +9,7 @@ export type QuestionWithOptions = {
   content: string
   pageNumber: number
   options: QuestionOption[]
+  status: "IDLE" | "COUNTDOWN" | "ACTIVE" | "RESULTS"
 }
 
 export type QuestionStats = {
