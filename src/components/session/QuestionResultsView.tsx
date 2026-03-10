@@ -75,8 +75,15 @@ export default function QuestionResultsView({ question, stats, onRelaunch}: Prop
         {question.content}
       </h2>
 
-      <div className="w-full max-w-3xl">
-        <Bar data={data} />
+      <div className="w-full max-w-3xl h-96">
+        <Bar 
+          key={`${stats.totalAnswers}-${JSON.stringify(stats.optionCounts)}`}
+          data={data}
+          options={{
+            responsive: true,
+            maintainAspectRatio: true
+          }}
+        />
       </div>
 
       <div className="text-center space-y-2">

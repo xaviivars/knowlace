@@ -66,7 +66,7 @@ export default function PresentationArea({
       refetchStats?.()
     }
 
-  }, [currentQuestion?.status, stats])
+  }, [currentQuestion?.status, stats, refetchStats])
 
   return (
     
