@@ -13,6 +13,7 @@ export type QuestionWithOptions = {
 }
 
 export type QuestionStats = {
+  questionId: string
   totalAnswers: number
   correctAnswers: number
   percentage: number

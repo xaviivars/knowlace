@@ -65,11 +65,11 @@ export default function PresentationArea({
     if (
       currentQuestion?.status === "RESULTS" &&
       currentQuestion?.id &&
-      !stats
+      stats?.questionId !== currentQuestion.id
     ) {
       refetchStats?.()
     }
-  }, [currentQuestion?.id, currentQuestion?.status])
+  }, [currentQuestion?.id, currentQuestion?.status, stats?.questionId])
 
   return (
     
@@ -104,7 +104,7 @@ export default function PresentationArea({
 
       {/* RESULTS */}
 
-      {joined && isActive && currentQuestion?.status === "RESULTS" && stats && (
+      {joined && isActive && currentQuestion?.status === "RESULTS" && stats?.questionId === currentQuestion.id && (
         <StudentResultsView
           question={currentQuestion}
           stats={stats}
