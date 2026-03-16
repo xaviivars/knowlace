@@ -49,8 +49,6 @@ export default function OwnerSessionPresentation({
     currentQuestion?.id ?? null
   )
 
-  console.log("Owner stats:", stats)
-
   useEffect(() => {
 
     const handlePageUpdated = (newPage: number) => {

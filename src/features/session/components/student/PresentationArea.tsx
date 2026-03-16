@@ -62,11 +62,14 @@ export default function PresentationArea({
 
   useEffect(() => {
 
-    if (currentQuestion?.status === "RESULTS" && !stats) {
+    if (
+      currentQuestion?.status === "RESULTS" &&
+      currentQuestion?.id &&
+      !stats
+    ) {
       refetchStats?.()
     }
-
-  }, [currentQuestion?.status, stats, refetchStats])
+  }, [currentQuestion?.id, currentQuestion?.status])
 
   return (
     

@@ -15,7 +15,7 @@ export function useQuestionStats(questionId: string | null) {
       `/api/question-stats?questionId=${questionId}`,
       { cache: "no-store" }
     )
-
+    
     const data = await res.json()
 
     setStats(data)
