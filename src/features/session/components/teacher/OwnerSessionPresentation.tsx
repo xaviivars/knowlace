@@ -158,7 +158,7 @@ export default function OwnerSessionPresentation({
     }
 
     return (
-      <div className="relative w-full max-w-7xl flex h-full flex-col">
+      <div className="relative flex h-full w-full flex-col justify-center">
         {renderContent()}
       </div>
     )

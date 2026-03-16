@@ -40,7 +40,7 @@ export default function SessionControls({
     <div className="flex items-center gap-4">
       <Link
         href={`/dashboard/sessions/${sessionId}/edit`}
-        className="px-4 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 font-medium"
+        className="px-4 py-3 rounded-xl bg-gray-600 hover:bg-gray-300 font-medium"
         >
         Editar preguntas
       </Link>

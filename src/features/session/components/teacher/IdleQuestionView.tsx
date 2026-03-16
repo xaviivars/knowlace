@@ -22,14 +22,17 @@ export default function IdleQuestionView({
 }: Props) {
 
   return (
-    <>
-      <QuestionView
-        question={question}
-        isOwner={isOwner}
-        isActive={false}
-      />
+    <div className="relative h-full w-full">
 
-      <div className="flex justify-end gap-4 mt-10 px-10">
+      <div className="h-full">
+        <QuestionView
+          question={question}
+          isOwner={isOwner}
+          isActive={false}
+        />
+      </div>
+
+      <div className="absolute bottom-8 right-8 flex gap-4">
 
         {pageNumber > 1 && (
           <button
@@ -58,7 +61,7 @@ export default function IdleQuestionView({
         </button>
       </div>
 
-    </>
+    </div>
   )
 
 }

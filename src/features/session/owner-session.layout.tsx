@@ -23,7 +23,7 @@ export default function OwnerSessionLayout({
 }) {
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#0e1d38] text-white">
+    <div className="flex flex-col h-full w-full bg-[#0e1d38] text-white">
 
       <header className="border-b border-white/20 px-6 py-4">
         <h1 className="text-2xl font-bold">{title}</h1>
@@ -32,7 +32,7 @@ export default function OwnerSessionLayout({
           )}
       </header>
 
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="border-b border-white/10 px-8 py-4">
         <SessionControls
           sessionId={sessionId}
           accessCode={accessCode}
@@ -40,7 +40,7 @@ export default function OwnerSessionLayout({
         />
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <OwnerSessionPresentation
           accessCode={accessCode}
           initialPage={initialPage}

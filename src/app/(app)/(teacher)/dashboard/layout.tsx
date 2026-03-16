@@ -10,7 +10,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen bg-[#0e1d38] text-white">
+    <div className="flex h-screen overflow-hidden bg-[#0e1d38] text-white">
       
       <aside className="w-64 bg-[#0f1b2d] p-6 flex flex-col">
         <h2 className="text-2xl font-bold mb-8">Knowlace.</h2>
@@ -40,7 +40,7 @@ export default function DashboardLayout({
 
       </aside>
 
-      <main className="flex-1 p-12">
+      <main className="flex-1 overflow-hidden">
         {children}
       </main>
 

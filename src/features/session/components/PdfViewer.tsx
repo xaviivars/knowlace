@@ -62,7 +62,7 @@ export default function PdfViewer({
           </button>
         </div>
 
-      <div className="flex-1 flex items-center justify-center w-full overflow-auto">
+      <div className="h-full w-full overflow-auto flex justify-center">
         <Document
           file="/lorem_ipsum.pdf"
           onLoadSuccess={onDocumentLoadSuccess}

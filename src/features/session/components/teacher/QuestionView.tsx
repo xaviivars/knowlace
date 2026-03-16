@@ -64,7 +64,7 @@ export function QuestionView({
   }
   
   return (
-    <div className="relative flex-1 bg-[#0b162c] text-white flex items-center justify-center px-6">
+    <div className="relative h-full w-full bg-[#0b162c] text-white flex items-center justify-center px-6">
       <div className="w-full max-w-4xl space-y-10">
 
         {isActive && remainingTime !== null && (

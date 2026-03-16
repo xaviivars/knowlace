@@ -22,14 +22,15 @@ export default function ResultsQuestionView({
 }: Props) {
 
   return (
-    <>
+    <div className="relative h-full w-full">
+
       <QuestionResultsView
         question={question}
         stats={stats}
         onRelaunch={onRelaunch}
       />
 
-      <div className="flex justify-end gap-4 mt-10 px-10">
+      <div className="absolute bottom-8 right-8 flex gap-4">
 
         {pageNumber > 1 && (
           <button
@@ -49,7 +50,7 @@ export default function ResultsQuestionView({
 
       </div>
 
-    </>
+    </div>
   )
 
 }
