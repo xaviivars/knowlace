@@ -11,6 +11,10 @@ type QuestionViewProps = {
   participantId?: string 
   remainingTime?: number
   isActive?: boolean
+  stats?: {
+    totalAnswers: number
+    totalParticipants: number
+  }
 }
 
 export function QuestionView({
@@ -18,7 +22,8 @@ export function QuestionView({
   isOwner = false,
   participantId,
   remainingTime,
-  isActive = false
+  isActive = false,
+  stats
 }: QuestionViewProps) {
 
   const [selected, setSelected] = useState<string | null>(null)
@@ -65,6 +70,12 @@ export function QuestionView({
         {isActive && remainingTime !== null && (
           <div className="absolute top-6 left-6 bg-black/40 px-4 py-2 rounded-xl text-lg font-semibold">
             ⏱ {remainingTime}s
+          </div>
+        )}
+
+        {stats && (
+          <div className="absolute top-20 right-6 bg-black/40 px-4 py-2 rounded-xl text-lg font-semibold">
+            {stats.totalAnswers} / {stats.totalParticipants}
           </div>
         )}
 

@@ -13,6 +13,16 @@ export async function GET(req: NextRequest) {
     )
   }
 
+  const question = await prisma.question.findUnique({ 
+    where: { id: questionId }, 
+  })
+  
+  const totalParticipants = await prisma.participant.count({
+    where: {
+      sessionId: question?.sessionId
+    }
+  })
+
   const answers = await prisma.answer.findMany({
     where: { questionId }
   })
@@ -52,6 +62,7 @@ export async function GET(req: NextRequest) {
     totalAnswers,
     correctAnswers,
     percentage,
-    optionCounts
+    optionCounts,
+    totalParticipants
   })
 }

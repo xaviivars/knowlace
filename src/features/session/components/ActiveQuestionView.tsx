@@ -7,6 +7,10 @@ type Props = {
   question: QuestionWithOptions
   remainingTime?: number
   isOwner: boolean
+  stats?: {
+    totalAnswers: number
+    totalParticipants: number
+  }
   onEnd: () => void
 }
 
@@ -14,6 +18,7 @@ export default function ActiveQuestionView({
   question,
   remainingTime,
   isOwner,
+  stats,
   onEnd
 }: Props) {
 
@@ -24,6 +29,7 @@ export default function ActiveQuestionView({
         isOwner={isOwner}
         remainingTime={remainingTime}
         isActive
+        stats={stats}
       />
 
       <div className="absolute top-6 right-6 z-20">

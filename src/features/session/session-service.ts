@@ -40,6 +40,12 @@ export async function getLeaderboardByAccessCode(accessCode: string) {
 
 export async function getQuestionStats(questionId: string) {
 
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+  })
+
+  if (!question) return null
+
   const answers = await prisma.answer.findMany({
     where: { questionId },
     include: {
@@ -65,6 +71,6 @@ export async function getQuestionStats(questionId: string) {
       totalAnswers === 0
         ? 0
         : Math.round((correctAnswers / totalAnswers) * 100),
-    optionCounts
+    optionCounts,
   }
 }
