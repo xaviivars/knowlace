@@ -3,17 +3,17 @@
 import dynamic from "next/dynamic"
 import { useEffect, useMemo, useState } from "react"
 
-import IdleQuestionView from "@/features/session/components/IdleQuestionView"
-import ActiveQuestionView from "@/features/session/components/ActiveQuestionView"
-import ResultsQuestionView from "@/features/session/components/ResultsQuestionView"
+import IdleQuestionView from "@/features/session/components/teacher/IdleQuestionView"
+import ActiveQuestionView from "@/features/session/components/teacher/ActiveQuestionView"
+import ResultsQuestionView from "@/features/session/components/teacher/ResultsQuestionView"
 import CountdownOverlay from "@/features/session/components/CountdownOverlay"
 
 import { useOwnerSession } from "@/features/session/hooks/useOwnerSession"
 import { QuestionWithOptions } from "@/features/question/question.types"
-import { useQuestionStats } from "./hooks/useQuestionStats"
+import { useQuestionStats } from "@/features/session/hooks/useQuestionStats"
 import { useRouter } from "next/navigation"
 
-const PdfViewer = dynamic(() => import("@/components/session/PdfViewer"), { ssr: false })
+const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), { ssr: false })
 
 export default function OwnerSessionPresentation({
   accessCode,

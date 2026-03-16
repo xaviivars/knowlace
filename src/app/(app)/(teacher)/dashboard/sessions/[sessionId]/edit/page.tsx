@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import CreateQuestionModal from "@/components/questions/CreateQuestionModal"
+import CreateQuestionModal from "@/features/question/components/CreateQuestionModal"
 
 export default async function SessionEditorPage({
   params,

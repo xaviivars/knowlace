@@ -1,7 +1,7 @@
 "use client"
 
-import SessionControls from "@/components/session/teacher/SessionControls"
-import OwnerSessionPresentation from "@/features/session/OwnerSessionPresentation"
+import SessionControls from "@/features/session/components/teacher/SessionControls"
+import OwnerSessionPresentation from "@/features/session/components/teacher/OwnerSessionPresentation"
 import { QuestionWithOptions } from "@/features/question/question.types"
 
 export default function OwnerSessionLayout({

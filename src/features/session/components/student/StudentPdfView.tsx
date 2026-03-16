@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic"
 
-const PdfViewer = dynamic(() => import("@/components/session/PdfViewer"), {
+const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), {
   ssr: false
 })
 

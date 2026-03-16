@@ -1,7 +1,7 @@
 "use client"
 
-import PresentationArea from "@/components/session/student/PresentationArea"
-import Sidebar from "@/components/session/Sidebar"
+import PresentationArea from "@/features/session/components/student/PresentationArea"
+import Sidebar from "@/features/session/components/Sidebar"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
 

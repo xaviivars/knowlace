@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { RegisterForm } from "@/components/auth/RegisterForm"
+import { RegisterForm } from "@/features/auth/components/RegisterForm"
 
 export default async function Register () {
 

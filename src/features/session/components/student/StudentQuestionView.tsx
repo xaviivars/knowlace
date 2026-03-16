@@ -1,6 +1,6 @@
 "use client"
 
-import { QuestionView } from "@/components/session/teacher/QuestionView"
+import { QuestionView } from "@/features/session/components/teacher/QuestionView"
 import { QuestionWithOptions } from "@/features/question/question.types"
 
 type Props = {

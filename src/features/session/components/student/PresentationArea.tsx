@@ -1,10 +1,10 @@
 "use client"
 
-import JoinSessionView from "@/features/session/components/JoinSessionView"
-import WaitingRoomView from "@/features/session/components/WaitingRoomView"
-import StudentQuestionView from "@/features/session/components/StudentQuestionView"
-import StudentResultsView from "@/features/session/components/StudentResultsView"
-import StudentPdfView from "@/features/session/components/StudentPdfView"
+import JoinSessionView from "@/features/session/components/student/JoinSessionView"
+import WaitingRoomView from "@/features/session/components/student/WaitingRoomView"
+import StudentQuestionView from "@/features/session/components/student/StudentQuestionView"
+import StudentResultsView from "@/features/session/components/student/StudentResultsView"
+import StudentPdfView from "@/features/session/components/student/StudentPdfView"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 import { useMemo, useEffect } from "react"
 

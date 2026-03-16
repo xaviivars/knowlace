@@ -1,6 +1,6 @@
 "use client"
 
-import QuestionResultsView from "@/components/session/QuestionResultsView"
+import QuestionResultsView from "@/features/session/components/teacher/QuestionResultsView"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 
 type Props = {
