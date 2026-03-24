@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import CreateQuestionModal from "@/features/question/components/CreateQuestionModal"
+import { deleteQuestionWithSlide } from "@/features/question/question-actions"
 
 export default async function SessionEditorPage({
   params,
@@ -23,11 +24,15 @@ export default async function SessionEditorPage({
   const session = await prisma.teachingSession.findUnique({
     where: { id: sessionId  },
     include: {
-      questions: {
-        orderBy: { pageNumber: "asc" },
-        include: { options: true },
+      slides: {
+        orderBy: { order: "asc" },
+        include: { 
+          question: {
+            include: { options: true }
+          }
+        },
       },
-    },
+    }
   })
 
   if (!session) notFound()
@@ -47,7 +52,7 @@ export default async function SessionEditorPage({
 
         <Link
           href={`/dashboard/sessions/${sessionId}`}
-          className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+          className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-300"
         >
           Volver a sesión
         </Link>
@@ -58,38 +63,58 @@ export default async function SessionEditorPage({
     </div>
 
       <div className="space-y-6">
-        {session.questions.length === 0 ? (
-          <p className="text-gray-500">No hay preguntas todavía.</p>
+        {session.slides.length === 0 ? (
+          <p className="text-gray-500">No hay contenido todavía.</p>
         ) : (
-          session.questions.map((question, index) => (
-            <div
-              key={question.id}
-              className="border rounded-xl p-5 space-y-4"
-            >
-              <h2 className="font-semibold">
-                Pregunta {index + 1}
-              </h2>
+          session.slides.map((slide, index) => {
 
-              <p>{question.content}</p>
+            if (slide.type === "PDF") {
+              return (
+                <div key={slide.id} className="border rounded-xl p-5 bg-gray-100">
+                  Página PDF {slide.order + 1}
+                </div>
+              )
+            }
 
-              <ul className="space-y-1">
-                {question.options.map((option) => (
-                  <li
-                    key={option.id}
-                    className={
-                      option.isCorrect
-                        ? "font-medium text-green-600"
-                        : ""
-                    }
-                  >
-                    • {option.content}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
+            if (!slide.question) return null
+
+            const question = slide.question
+
+            return (
+              <div
+                key={question.id}
+                className="border rounded-xl p-5 space-y-4"
+              >
+                <h2 className="font-semibold">
+                  Pregunta (posición {slide.order})
+                </h2>
+
+                <p>{question.content}</p>
+
+                <ul className="space-y-1">
+                  {question.options.map((option) => (
+                    <li
+                      key={option.id}
+                      className={
+                        option.isCorrect
+                          ? "font-medium text-green-600"
+                          : ""
+                      }
+                    >
+                      • {option.content}
+                    </li>
+                  ))}
+                </ul>
+
+                <form action={deleteQuestionWithSlide.bind(null, question.id)}>
+                  <button className="text-red-500 hover:underline">
+                    Eliminar pregunta
+                  </button>
+                </form>
+              </div>
+            )
+          })
         )}
       </div>
     </div>
-  )
-}
+  )}

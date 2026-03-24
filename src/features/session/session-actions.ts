@@ -5,7 +5,8 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { generateAccessCode } from "@/lib/utils/generateAccessCode"
 
-export async function createSession(title: string, description?: string) {
+export async function createSession(title: string, pdfPages: number, pdfUrl: string, description?: string) {
+
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -14,6 +15,14 @@ export async function createSession(title: string, description?: string) {
     throw new Error("Unauthorized")
   }
 
+  if (!title.trim()) {
+    throw new Error("Título requerido")
+  }
+
+  if (!pdfPages || pdfPages <= 0) {
+    throw new Error("PDF inválido")
+  }
+  
   const accessCode = generateAccessCode()
 
   const newSession = await prisma.teachingSession.create({
@@ -22,6 +31,8 @@ export async function createSession(title: string, description?: string) {
       description,
       ownerId: session.user.id,
       accessCode,
+      pdfPages,
+      pdfUrl
     },
   })
 

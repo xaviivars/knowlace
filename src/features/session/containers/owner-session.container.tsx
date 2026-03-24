@@ -9,16 +9,18 @@ export default function OwnerSessionContainer({
   title,
   description,
   initialIsActive,
-  initialPage,
-  questions
+  initialSlideIndex,
+  slides,
+  pdfUrl
 }: {
   sessionId: string
   accessCode: string
   title: string
   description: string | null
   initialIsActive: boolean
-  initialPage: number
-  questions: QuestionWithOptions[]
+  initialSlideIndex: number
+  slides: any[]
+  pdfUrl: String
 }) {
 
   return (
@@ -28,8 +30,9 @@ export default function OwnerSessionContainer({
       title={title}
       description={description}
       isActive={initialIsActive}
-      initialPage={initialPage}
-      questions={questions}
+      initialSlideIndex={initialSlideIndex}
+      slides={slides}
+      pdfUrl={pdfUrl}
     />
   )
 }

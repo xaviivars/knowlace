@@ -24,56 +24,50 @@ type Props = {
 
   accessCode: string
 
-  pageNumber: number
-  onPageChange: (page: number) => void
-
-  questions: QuestionWithOptions[]
+  slides: any[]
+  slideIndex: number
+  onSlideChange: (i: number) => void
 
   participantId: string | null
   remainingTime: number | null
 
   stats: QuestionStats | null
-
   countdown: number | null
 
   isFollowingTeacher: boolean
-  teacherPage: number
+  teacherSlideIndex: number
 
   refetchStats: () => void
+  pdfUrl: String
 }
 
-export default function SessionLayout({
-  sessionTitle,
-  participants,
-  leaderboard,
-  joined,
-  isActive,
-
-  name,
-  setName,
-  error,
-
-  onJoin,
-  onLeave,
-  onGoHome,
-
-  accessCode,
-
-  pageNumber,
-  onPageChange,
-
-  questions,
-
-  participantId,
-  remainingTime,
-  stats,
-
-  countdown,
-
-  isFollowingTeacher,
-  teacherPage,
-  refetchStats
-}: Props) {
+export default function SessionLayout(props: Props) {
+  
+  const {
+    sessionTitle,
+    isFollowingTeacher,
+    teacherSlideIndex,
+    onSlideChange,
+    onGoHome, 
+    countdown, 
+    participants,
+    leaderboard,
+    joined,
+    isActive,
+    name,
+    setName,
+    error,
+    onJoin,
+    onLeave,
+    accessCode,
+    slides,
+    slideIndex,
+    participantId,
+    remainingTime,
+    stats,
+    refetchStats,
+    pdfUrl
+  } = props
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0e1d38] text-white">
@@ -97,10 +91,10 @@ export default function SessionLayout({
         {!isFollowingTeacher && (
           <div className="absolute top-20 left-6 bg-yellow-500 text-black px-4 py-2 rounded shadow-lg z-20">
             <span className="mr-3">
-              Profesor está en página {teacherPage}
+              Profesor está en página {teacherSlideIndex}
             </span>
             <button
-              onClick={() => onPageChange(teacherPage)}
+              onClick={() => onSlideChange(teacherSlideIndex)}
               className="bg-black text-white px-3 py-1 rounded"
             >
               Seguir al profesor
@@ -128,16 +122,17 @@ export default function SessionLayout({
           onJoin={onJoin}
 
           accessCode={accessCode}
-          pageNumber={pageNumber}
-          onPageChange={onPageChange}
-
-          questions={questions}
+          slides={slides}
+          slideIndex={slideIndex}
+          onSlideChange={onSlideChange}
 
           participantId={participantId}
           remainingTime={remainingTime}
+          countdown={countdown}
 
           stats={stats}
           refetchStats={refetchStats}
+          pdfUrl={pdfUrl}
         />
 
         <Sidebar

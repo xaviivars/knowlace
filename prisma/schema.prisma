@@ -93,6 +93,10 @@ model TeachingSession {
 
   participants Participant[]
   questions Question[]
+
+  pdfPages Int
+  pdfUrl String
+  slides Slide[]
 }
 
 model Participant {
@@ -121,25 +125,26 @@ enum QuestionStatus {
 }
 
 model Question {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   sessionId   String
   type        QuestionType
   content     String
-  pageNumber  Int
   timeLimit   Int?          
-  createdAt   DateTime      @default(now())
-  status QuestionStatus @default(IDLE)
-  answers Answer[]
+  createdAt   DateTime       @default(now())
+  status      QuestionStatus @default(IDLE)
 
-  isActive    Boolean       @default(false)
+  answers     Answer[]
+
+  isActive    Boolean        @default(false)
   startedAt   DateTime?
   endedAt     DateTime?
 
   session     TeachingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   options     Option[]
 
-  @@unique([sessionId, pageNumber  ])
-  @@index([sessionId, pageNumber])
+  slide Slide?
+
+  @@index([sessionId])
 }
 
 model Option {
@@ -173,3 +178,25 @@ model Answer {
   @@unique([participantId, questionId])
   @@index([questionId])
 } 
+
+model Slide {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     TeachingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  order       Int
+  type        SlideType
+
+  page        Int?
+  questionId  String? @unique
+  question    Question? @relation(fields: [questionId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@index([sessionId, order])
+}
+
+enum SlideType {
+  PDF
+  QUESTION
+}

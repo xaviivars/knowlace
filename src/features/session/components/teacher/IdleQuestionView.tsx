@@ -5,20 +5,20 @@ import { QuestionWithOptions } from "@/features/question/question.types"
 
 type Props = {
   question: QuestionWithOptions
-  pageNumber: number
   isOwner: boolean
   onNext: () => void
   onPrevious: () => void
   onLaunch: () => void
+  hasPrevious: boolean
 }
 
 export default function IdleQuestionView({
   question,
-  pageNumber,
   isOwner,
   onNext,
   onPrevious,
-  onLaunch
+  onLaunch,
+  hasPrevious
 }: Props) {
 
   return (
@@ -34,7 +34,7 @@ export default function IdleQuestionView({
 
       <div className="absolute bottom-8 right-8 flex gap-4">
 
-        {pageNumber > 1 && (
+        {hasPrevious && (
           <button
             onClick={onPrevious}
             className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"

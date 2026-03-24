@@ -8,22 +8,19 @@ const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"
 
 type Props = {
   accessCode: string
+  pdfUrl: string
   pageNumber: number
-  onPageChange: (page: number) => void
 }
 
 export default function StudentPdfView({
-  accessCode,
+  pdfUrl,
   pageNumber,
-  onPageChange
 }: Props) {
 
   return (
     <PdfViewer
-      accessCode={accessCode}
+      fileUrl={pdfUrl}
       pageNumber={pageNumber}
-      onPageChange={onPageChange}
-      isOwner={false}
     />
   )
 

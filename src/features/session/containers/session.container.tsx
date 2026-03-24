@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useRef, useMemo } from "react"
+import { useEffect, useState, useRef } from "react"
 
 import { getSocket } from "@/lib/socket"
 
@@ -13,13 +13,18 @@ import { QuestionWithOptions } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
 import { useQuestionStats } from "../hooks/useQuestionStats"
 
+type Slide =
+  | { type: "PDF"; page: number }
+  | { type: "QUESTION"; question: any }
+
 type Props = {
   sessionTitle: string
   accessCode: string
   initialIsActive: boolean
   initialParticipants: Participant[]
-  initialPage: number
-  questions: QuestionWithOptions[]
+  initialSlideIndex: number
+  slides: Slide[]
+  pdfUrl: String
 }
 
 export default function SessionContainer({
@@ -27,8 +32,9 @@ export default function SessionContainer({
   accessCode,
   initialIsActive,
   initialParticipants,
-  initialPage,
-  questions
+  initialSlideIndex,
+  slides,
+  pdfUrl
 }: Props) {
 
   const router = useRouter()
@@ -42,26 +48,22 @@ export default function SessionContainer({
 
   const participantIdRef = useRef<string | null>(null)
 
-  const [teacherPage, setTeacherPage] = useState(initialPage)
-  const [localPage, setLocalPage] = useState(initialPage)
+  const [teacherSlideIndex, setTeacherSlideIndex] = useState(initialSlideIndex)
+  const [localSlideIndex, setLocalSlideIndex] = useState(initialSlideIndex)
 
-  const isFollowingTeacher = localPage === teacherPage
+  const isFollowingTeacher = localSlideIndex === teacherSlideIndex
 
   const [leaderboard, setLeaderboard] = useState<Participant[]>([])
-
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [remainingTime, setRemainingTime] = useState<number | null>(null)
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  const [remainingTime, setRemainingTime] = useState<number | null>(null)
   
-  const questionMap = useMemo(() => {
-    return Object.fromEntries(
-      questions.map(q => [q.pageNumber, q])
-    )
-  }, [questions])
-
-  const currentQuestion = questionMap[localPage]
+  const currentSlide = slides[localSlideIndex]
+  const currentQuestion =
+    currentSlide?.type === "QUESTION"
+      ? currentSlide.question
+      : null
 
   const { stats, refetchStats } = useQuestionStats(
     currentQuestion?.id ?? null
@@ -91,15 +93,11 @@ export default function SessionContainer({
             socket.emit("participant-joined", accessCode, parsed.participantId)
 
           } else {
-
             localStorage.removeItem("knowlace_participant")
-
           }
 
         })
-
       }
-
     }
 
     if (socket.connected) {
@@ -126,21 +124,21 @@ export default function SessionContainer({
       setIsActive(false)
     })
 
-    socket.on("page-updated", (newPage: number) => {
+    socket.on("slide-updated", (newIndex: number) => {
 
-      setTeacherPage(prevTeacher => {
+      setTeacherSlideIndex(prevTeacher => {
 
-        setLocalPage(prevLocal => {
+        setLocalSlideIndex(prevLocal => {
 
           if (prevLocal === prevTeacher) {
-            return newPage
+            return newIndex
           }
 
           return prevLocal
 
         })
 
-        return newPage
+        return newIndex
 
       })
 
@@ -324,18 +322,9 @@ export default function SessionContainer({
 
   }
 
-
-  const handlePageChange = (newPage: number) => {
-
-    setLocalPage(newPage)
-
-    const socket = getSocket()
-
-    socket.emit("request-question-state", {
-      accessCode,
-      pageNumber: newPage
-    })
-
+  const handleSlideChange = (index: number) => {
+    if (index < 0 || index >= slides.length) return
+    setLocalSlideIndex(index)
   }
 
   return (
@@ -353,16 +342,17 @@ export default function SessionContainer({
       onLeave={handleLeave}
       onGoHome={handleGoHome}
       accessCode={accessCode}
-      pageNumber={localPage}
-      onPageChange={handlePageChange}
-      questions={questions}
+      slides={slides}
+      slideIndex={localSlideIndex}
+      onSlideChange={handleSlideChange}
       participantId={participantIdRef.current}
       remainingTime={remainingTime}
       stats={stats}
       countdown={countdown}
       isFollowingTeacher={isFollowingTeacher}
-      teacherPage={teacherPage}
+      teacherSlideIndex={teacherSlideIndex}
       refetchStats={refetchStats}
+      pdfUrl={pdfUrl}
     />
 
   )

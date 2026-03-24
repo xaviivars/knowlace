@@ -3,105 +3,159 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
+import { createQuestionWithSlide } from "../session/slide-service"
 
-type CreateQuestionInput = {
-  sessionId: string
-  content: string
-  pageNumber: number
-  options: {
+  // ---------------- CREATE ----------------
+
+  export async function createQuestionAction({
+    sessionId,
+    content,
+    options,
+    insertAt,
+  }: {
+    sessionId: string
     content: string
-    isCorrect: boolean
-  }[]
-}
+    options: { content: string; isCorrect: boolean }[]
+    insertAt?: number
+  }) {
 
-async function assertOwner(sessionId: string) {
-  const sessionAuth = await auth.api.getSession({
-    headers: await headers(),
-  })
+    const sessionAuth = await auth.api.getSession({
+      headers: await headers(),
+    })
 
-  if (!sessionAuth) {
-    throw new Error("Unauthorized")
+    if (!sessionAuth) throw new Error("Unauthorized")
+
+    if (!content.trim()) {
+      throw new Error("La pregunta no puede estar vacía")
+    }
+
+    if (!options.some(o => o.isCorrect)) {
+      throw new Error("Debe haber una opción correcta")
+    }
+
+    return createQuestionWithSlide({
+      sessionId,
+      content,
+      options,
+      insertAt,
+    })
+
   }
 
-  const session = await prisma.teachingSession.findUnique({
-    where: { id: sessionId },
-  })
+  // ---------------- DELETE ----------------
 
-  if (!session || session.ownerId !== sessionAuth.user.id) {
-    throw new Error("Forbidden")
+  export async function deleteQuestionWithSlide(questionId: string) {
+
+    const sessionAuth = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!sessionAuth) throw new Error("Unauthorized")
+
+    const question = await prisma.question.findUnique({
+      where: { id: questionId },
+      include: {
+        slide: true,
+      },
+    })
+
+    if (!question) throw new Error("Not found")
+
+    const session = await prisma.teachingSession.findUnique({
+      where: { id: question.sessionId },
+    })
+
+    if (!session || session.ownerId !== sessionAuth.user.id) {
+      throw new Error("Forbidden")
+    }
+
+    const slide = question.slide
+    const slideOrder = slide?.order
+
+    if (slide && slideOrder !== undefined) {
+
+      await prisma.slide.delete({
+        where: { id: slide.id }
+      })
+      
+      await prisma.slide.updateMany({
+        where: {
+          sessionId: session.id,
+          order: { gt: slide.order },
+        },
+        data: {
+          order: { decrement: 1 },
+        },
+      })
+
+      await prisma.slide.delete({
+        where: { id: slide.id },
+      })
+    }
+
   }
 
-  return session
-}
+  // ---------------- GET SLIDES ----------------
+  // REVISAR: Pdte. mover a otro archivo
 
-export async function createQuestionAction({
-  sessionId,
-  content,
-  pageNumber,
-  options,
-}: CreateQuestionInput) {
+  export async function getSlidesBySessionAction(sessionId: string) {
 
-  if (!content.trim()) {
-    throw new Error("La pregunta no puede estar vacía")
-  }
+    const sessionAuth = await auth.api.getSession({
+      headers: await headers(),
+    })
 
-  if (pageNumber < 1) {
-    throw new Error("Número de página inválido")
-  }
+    if (!sessionAuth) throw new Error("Unauthorized")
 
-  if (!options.some((o) => o.isCorrect)) {
-    throw new Error("Debe haber una opción correcta")
-  }
 
-  try {
-    return await prisma.question.create({
-      data: {
-        sessionId,
-        content,
-        pageNumber,
-        type: "MULTIPLE_CHOICE",
-        options: {
-          create: options.map((opt) => ({
-            content: opt.content,
-            isCorrect: opt.isCorrect,
-          })),
+    const session = await prisma.teachingSession.findUnique({
+      where: { id: sessionId },
+    })
+
+    if (!session) throw new Error("Session not found")  
+
+    const questionSlides = await prisma.slide.findMany({
+      where: { sessionId },
+      orderBy: { order: "asc" },
+      include: {
+        question: {
+          include: {
+            options: true,
+          },
         },
       },
     })
-  } catch (error: any) {
 
-    if (error.code === "P2002") {
-      throw new Error("Ya existe una pregunta para esa página")
+    return buildSlides({
+      pdfPages: session.pdfPages,
+      questionSlides
+    })
+  }
+
+  function buildSlides({
+    pdfPages,
+    questionSlides
+  }: {
+    pdfPages: number
+    questionSlides: any[]
+  }) {
+
+    const slides: any[] = []
+
+    for (let i = 1; i <= pdfPages; i++) {
+      slides.push({
+        type: "PDF",
+        page: i
+      }) 
     }
 
-    throw new Error("No se pudo crear la pregunta")
+    questionSlides.sort((a,b) => a.order - b.order)
+    
+    questionSlides.forEach(q => {
+      slides.splice(q.order, 0, {
+        type: "QUESTION",
+        question: q.question
+      })
+    })
+
+    return slides
   }
-}
-
-export async function getQuestionsBySessionAction(sessionId: string) {
-  await assertOwner(sessionId)
-
-  return prisma.question.findMany({
-    where: { sessionId },
-    orderBy: { pageNumber: "asc" },
-    include: {
-      options: true,
-    },
-  })
-}
-
-export async function deleteQuestionAction(questionId: string) {
-  const question = await prisma.question.findUnique({
-    where: { id: questionId },
-  })
-
-  if (!question) {
-    throw new Error("Question not found")
-  }
-
-  await assertOwner(question.sessionId)
-
-  return prisma.question.delete({
-    where: { id: questionId },
-  })
-}

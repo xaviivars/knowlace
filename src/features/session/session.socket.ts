@@ -133,14 +133,14 @@ export function registerSessionSockets(io: Server, socket: Socket) {
 
   })
 
-  socket.on("page-changed", async (newPage: number) => {
+  socket.on("slide-changed", async (newIndex: number) => {
 
     const accessCode = socket.data.accessCode
 
     if (!accessCode) return
     if (socket.data.role !== "owner") return
-    if (typeof newPage !== "number") return
-    if (newPage < 1) return
+    if (typeof newIndex !== "number") return
+    if (newIndex < 0) return
 
     const session = await prisma.teachingSession.findUnique({
         where: { accessCode },
@@ -148,27 +148,30 @@ export function registerSessionSockets(io: Server, socket: Socket) {
 
     if (!session) return
 
-
     await prisma.teachingSession.update({
         where: { accessCode },
-        data: { currentPage: newPage },
+        data: { currentPage: newIndex },
     })
 
-    const question = await prisma.question.findFirst({
-        where: {
+    const slide = await prisma.slide.findFirst({
+      where: {
         sessionId: session.id,
-        pageNumber: newPage,
-        },
+        order: newIndex,
+      },
+      include: {
+        question: true,
+      }
     })
 
-    if (question && question.endedAt) {
+    if (!slide) return
 
-        io.to(accessCode).emit("question-stats-updated", {
-          questionId: question.id,
-        })
+    if (slide.type === "QUESTION" && slide.question && slide.question.endedAt) {
+      io.to(accessCode).emit("question-stats-updated", {
+        questionId: slide.question.id,
+      })
     }
 
-    io.to(accessCode).emit("page-updated", newPage)
+    io.to(accessCode).emit("slide-updated", newIndex)
     
   })
 

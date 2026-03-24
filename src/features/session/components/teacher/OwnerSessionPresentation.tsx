@@ -15,16 +15,20 @@ import { useRouter } from "next/navigation"
 
 const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), { ssr: false })
 
+type Slide =
+  | { type: "PDF"; page: number }
+  | { type: "QUESTION"; question: QuestionWithOptions }
+
 export default function OwnerSessionPresentation({
   accessCode,
-  initialPage,
+  slides,
   isOwner,
-  questions,
+  pdfUrl,
 }: {
   accessCode: string
-  initialPage: number
+  slides: Slide[]
   isOwner: boolean
-  questions: QuestionWithOptions[]
+  pdfUrl: string
 }) {
 
   const router = useRouter()
@@ -33,27 +37,22 @@ export default function OwnerSessionPresentation({
     socket,
     countdown,
     remainingTime,
+    slideIndex,
+    setSlideIndex
   } = useOwnerSession(accessCode)
 
-  const [pageNumber, setPageNumber] = useState(initialPage)
+  const currentSlide = slides[slideIndex]
 
-  const questionMap = useMemo(() => {
-    return Object.fromEntries(
-      questions.map(q => [q.pageNumber, q])
-    )
-  }, [questions])
-
-  const currentQuestion = questionMap[pageNumber]
+  const currentQuestion =
+    currentSlide?.type === "QUESTION"
+      ? currentSlide.question
+      : null
 
   const { stats, refetchStats } = useQuestionStats(
     currentQuestion?.id ?? null
   )
 
   useEffect(() => {
-
-    const handlePageUpdated = (newPage: number) => {
-      setPageNumber(newPage)
-    }
 
     const handleStatsUpdated = ({ questionId }: { questionId: string }) => {
       if (questionId === currentQuestion?.id) {
@@ -64,8 +63,6 @@ export default function OwnerSessionPresentation({
     const handleStateChange = () => {
       router.refresh()
     }
-
-    socket.on("page-updated", handlePageUpdated)
     socket.on("question-stats-updated", handleStatsUpdated)
 
     socket.on("question-started", handleStateChange)
@@ -73,9 +70,7 @@ export default function OwnerSessionPresentation({
     socket.on("question-reset", handleStateChange)
 
     return () => {
-      socket.off("page-updated", handlePageUpdated)
       socket.off("question-stats-updated", handleStatsUpdated)
-
       socket.off("question-started", handleStateChange)
       socket.off("question-ended", handleStateChange)
       socket.off("question-reset", handleStateChange)
@@ -83,36 +78,39 @@ export default function OwnerSessionPresentation({
 
   }, [socket, currentQuestion?.id])
 
-  function handlePageChange(newPage: number) {
-    setPageNumber(newPage)
+  function handleSlideChange(index: number) {
 
-    socket.emit("page-changed", newPage)
+    if (index < 0 || index >= slides.length) return
+
+    setSlideIndex(index)
+    socket.emit("slide-changed", index)
   }
 
   function renderContent() {
 
-      if (!currentQuestion) {
+      if (!currentSlide) return null
 
+      if (currentSlide.type === "PDF" ) {
         return (
           <PdfViewer
-            accessCode={accessCode}
-            pageNumber={pageNumber}
-            onPageChange={handlePageChange}
-            isOwner
+            fileUrl={pdfUrl}
+            pageNumber={currentSlide.page}
           />
         )
-
       }
 
-      switch (currentQuestion.status) {
+      const question = currentSlide.question
+      if (!question) return null
+
+      switch (question.status) {
 
         case "COUNTDOWN":
-          return <CountdownOverlay seconds={countdown} />
+          return <CountdownOverlay seconds={countdown ?? 0} />
 
         case "ACTIVE":
           return (
             <ActiveQuestionView
-              question={currentQuestion}
+              question={question}
               remainingTime={remainingTime ?? undefined}
               isOwner={isOwner}
               stats={stats ?? undefined}
@@ -132,25 +130,24 @@ export default function OwnerSessionPresentation({
       
           return (
             <ResultsQuestionView
-              question={currentQuestion}
+              question={question}
               stats={stats}
-              pageNumber={pageNumber}
-              onNext={() => handlePageChange(pageNumber + 1)}
-              onPrevious={() => handlePageChange(pageNumber - 1)}
+              onNext={() => handleSlideChange(slideIndex + 1)}
+              onPrevious={() => handleSlideChange(slideIndex - 1)}
               onRelaunch={() => socket.emit("relaunch-question")}
+              hasPrevious={slideIndex > 0}
             />
           )
 
-        case "IDLE":
         default:
           return (
             <IdleQuestionView
-              question={currentQuestion}
-              pageNumber={pageNumber}
+              question={question}
               isOwner={isOwner}
-              onNext={() => handlePageChange(pageNumber + 1)}
-              onPrevious={() => handlePageChange(pageNumber - 1)}
+              onNext={() => handleSlideChange(slideIndex + 1)}
+              onPrevious={() => handleSlideChange(slideIndex - 1)}
               onLaunch={() => socket.emit("launch-question")}
+              hasPrevious={slideIndex > 0}
             />
           )
       }

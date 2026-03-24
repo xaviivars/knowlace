@@ -9,10 +9,15 @@ export function useOwnerSession(accessCode: string) {
 
   const [countdown, setCountdown] = useState<number | null>(null)
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
+  const [slideIndex, setSlideIndex] = useState(0)
 
   useEffect(() => {
 
     socket.emit("owner-join", accessCode)
+
+    socket.on("slide-updated", (index: number) => {
+      setSlideIndex(index)
+    })
 
     socket.on("question-countdown", ({ seconds }) => {
 
@@ -80,7 +85,8 @@ export function useOwnerSession(accessCode: string) {
     })
 
     return () => {
-
+      
+      socket.off("slide-updated")
       socket.off("question-started")
       socket.off("question-ended")
       socket.off("question-countdown")
@@ -95,6 +101,8 @@ export function useOwnerSession(accessCode: string) {
     socket,
     countdown,
     remainingTime,
+    slideIndex,
+    setSlideIndex
   }
 
 }

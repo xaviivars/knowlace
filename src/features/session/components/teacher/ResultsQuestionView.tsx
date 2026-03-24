@@ -6,19 +6,19 @@ import { QuestionWithOptions, QuestionStats } from "@/features/question/question
 type Props = {
   question: QuestionWithOptions
   stats: QuestionStats 
-  pageNumber: number
   onNext: () => void
   onPrevious: () => void
   onRelaunch: () => void
+  hasPrevious: boolean
 }
 
 export default function ResultsQuestionView({
   question,
   stats,
-  pageNumber,
   onNext,
   onPrevious,
-  onRelaunch
+  onRelaunch,
+  hasPrevious
 }: Props) {
 
   return (
@@ -32,7 +32,7 @@ export default function ResultsQuestionView({
 
       <div className="absolute bottom-8 right-8 flex gap-4">
 
-        {pageNumber > 1 && (
+        {hasPrevious && (
           <button
             onClick={onPrevious}
             className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"

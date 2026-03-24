@@ -2,7 +2,6 @@
 
 import SessionControls from "@/features/session/components/teacher/SessionControls"
 import OwnerSessionPresentation from "@/features/session/components/teacher/OwnerSessionPresentation"
-import { QuestionWithOptions } from "@/features/question/question.types"
 
 export default function OwnerSessionLayout({
   sessionId,
@@ -10,16 +9,15 @@ export default function OwnerSessionLayout({
   title,
   description,
   isActive,
-  initialPage,
-  questions
+  slides
 }: {
   sessionId: string
   accessCode: string
   title: string
   description: string | null
   isActive: boolean
-  initialPage: number
-  questions: QuestionWithOptions[]
+  initialSlideIndex: number
+  slides: any
 }) {
 
   return (
@@ -43,9 +41,8 @@ export default function OwnerSessionLayout({
       <div className="flex-1 overflow-hidden">
         <OwnerSessionPresentation
           accessCode={accessCode}
-          initialPage={initialPage}
           isOwner={true}
-          questions={questions}
+          slides={slides}
         />
       </div>
 

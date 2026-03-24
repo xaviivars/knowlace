@@ -3,11 +3,18 @@
 import { useState } from "react"
 import { createSession } from "@/features/session/session-actions"
 import { useRouter } from "next/navigation"
+import { getPdfPagesFromUrl } from "@/lib/pdf/getPdfPages"
+import * as pdfjsLib from "pdfjs-dist"
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 export default function NewSessionForm() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,8 +22,15 @@ export default function NewSessionForm() {
     setLoading(true)
 
     try {
-      const session = await createSession(title, description)
+
+      const pdfUrl = "/lorem_ipsum.pdf"
+
+      const pdfPages = await getPdfPagesFromUrl(pdfUrl)
+
+      const session = await createSession(title, pdfPages, description, pdfUrl)
+
       router.push(`/dashboard/sessions/${session.id}`)
+
     } catch (error) {
       console.error(error)
     } finally {
@@ -61,6 +75,19 @@ export default function NewSessionForm() {
               placeholder="Añade una breve descripción..."
               rows={4}
               className="bg-[#0e1d38] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"
+            />
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm text-white/70">
+              PDF
+            </label>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="text-white"
+              required
             />
           </div>
 

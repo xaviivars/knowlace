@@ -14,7 +14,7 @@ export default function CreateQuestionModal({
   const router = useRouter()
 
   const [content, setContent] = useState("")
-  const [pageNumber, setPageNumber] = useState(1)
+  const [insertAt, setInsertAt] = useState(0)
 
   const [options, setOptions] = useState([
     { content: "", isCorrect: true },
@@ -39,7 +39,7 @@ export default function CreateQuestionModal({
 
   function handleSubmit() {
     if (!content.trim()) return
-    if (pageNumber < 1) return
+    if (insertAt < 0) return
 
     startTransition(async () => {
       try {
@@ -47,12 +47,12 @@ export default function CreateQuestionModal({
           sessionId,
           content,
           options,
-          pageNumber,
+          insertAt
         })
         
         setIsOpen(false)
         setContent("")
-        setPageNumber(1)
+        setInsertAt(0)
         router.refresh()
       } catch (err: any) {
         alert(err.message || "Error al crear la pregunta")
@@ -79,13 +79,13 @@ export default function CreateQuestionModal({
 
             <div className="space-y-2">
               <label className="text-sm text-zinc-400">
-                Página del PDF
+                Posición (slide)
               </label>
               <input
                 type="number"
-                min={1}
-                value={pageNumber}
-                onChange={(e) => setPageNumber(Number(e.target.value))}
+                min={0}
+                value={insertAt}
+                onChange={(e) => setInsertAt(Number(e.target.value))}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>

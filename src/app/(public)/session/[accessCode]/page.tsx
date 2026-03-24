@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import SessionContainer from "@/features/session/containers/session.container"
+import { getSlidesBySessionAction } from "@/features/question/question-actions"
 
 export default async function PublicSessionPage({
   params,
@@ -15,13 +16,6 @@ export default async function PublicSessionPage({
   const session = await prisma.teachingSession.findUnique({
     where: {
       accessCode: normalizedCode,
-    },
-     include: {
-      questions: {
-        include: {
-          options: true,
-        },
-      },
     },
   })
 
@@ -39,14 +33,17 @@ export default async function PublicSessionPage({
     }
   })
 
+  const slides = await getSlidesBySessionAction(session.id)
+
   return (
     <SessionContainer
       accessCode={normalizedCode}
       sessionTitle={session.title}
       initialIsActive={session.isActive}
       initialParticipants={participants}
-      initialPage={session.currentPage}
-      questions={session.questions}
+      initialSlideIndex={session.currentPage}
+      slides={slides}
+      pdfUrl={session.pdfUrl}
     />
   )
 }

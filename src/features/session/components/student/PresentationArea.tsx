@@ -7,6 +7,7 @@ import StudentResultsView from "@/features/session/components/student/StudentRes
 import StudentPdfView from "@/features/session/components/student/StudentPdfView"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 import { useMemo, useEffect } from "react"
+import CountdownOverlay from "../CountdownOverlay"
 
 type Props = {
   joined: boolean
@@ -18,16 +19,18 @@ type Props = {
   onJoin: () => void
 
   accessCode: string
-  pageNumber: number
-  onPageChange: (page: number) => void
 
-  questions: QuestionWithOptions[]
+  slides: any[]
+  slideIndex: number
 
   participantId: string | null
   remainingTime: number | null
+  countdown: number | null
 
   stats: QuestionStats | null
+  onSlideChange: (index: number) => void
   refetchStats?: () => void
+  pdfUrl: string
 }
 
 export default function PresentationArea({
@@ -40,25 +43,26 @@ export default function PresentationArea({
   onJoin,
 
   accessCode,
-  pageNumber,
-  onPageChange,
-
-  questions,
+  
+  slides,
+  slideIndex,
+  onSlideChange,
 
   participantId,
   remainingTime,
+  countdown,
 
   stats,
-  refetchStats
+  refetchStats,
+  pdfUrl
 }: Props) {
 
-  const questionMap = useMemo(() => {
-    return Object.fromEntries(
-      questions.map(q => [q.pageNumber, q])
-    )
-  }, [questions])
+  const currentSlide = slides[slideIndex]
 
-  const currentQuestion = questionMap[pageNumber]
+  const currentQuestion =
+    currentSlide?.type === "QUESTION"
+      ? currentSlide.question
+      : null
 
   useEffect(() => {
 
@@ -94,67 +98,79 @@ export default function PresentationArea({
 
       {/* Sesión activa */}
 
-      {joined && isActive && currentQuestion?.status === "ACTIVE" && (
-        <StudentQuestionView
-          question={currentQuestion}
-          participantId={participantId}
-          remainingTime={remainingTime}
-        />
-      )}
-
-      {/* RESULTS */}
-
-      {joined && isActive && currentQuestion?.status === "RESULTS" && stats?.questionId === currentQuestion.id && (
-        <StudentResultsView
-          question={currentQuestion}
-          stats={stats}
-        />
-      )}
-
-      {joined && isActive && currentQuestion?.status === "RESULTS" && !stats && (
-        <div className="text-white text-center py-10">
-          Cargando resultados...
-        </div>
-      )}
-
-      {/* PDF */}
-
-      {joined && isActive && (!currentQuestion || currentQuestion.status === "IDLE" || currentQuestion.status === "COUNTDOWN") && (
-
+      {joined && isActive && currentSlide && (
         <>
-          <div className="flex-1">
-
+          {/* PDF */}
+          {currentSlide.type === "PDF" && (
             <StudentPdfView
               accessCode={accessCode}
-              pageNumber={pageNumber}
-              onPageChange={onPageChange}
+              pdfUrl={pdfUrl}
+              pageNumber={currentSlide.page}
             />
+          )}
 
-          </div>
-        </>
-      )}
-      
-      {joined && isActive && (
-        <div className="w-full flex justify-end gap-4 px-6 py-6">
+          {/* QUESTION */}
+          {currentSlide.type === "QUESTION" && currentQuestion && (
 
-              {pageNumber > 1 && (
-                <button
-                  onClick={() => onPageChange(pageNumber - 1)}
-                  className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
-                >
-                  Anterior
-                </button>
+            <>
+              {currentQuestion.status === "COUNTDOWN" && (
+                <CountdownOverlay seconds={countdown ?? 0} />
               )}
 
-              <button
-                onClick={() => onPageChange(pageNumber + 1)}
-                className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
-              >
-                Siguiente
-              </button>
+              {currentQuestion.status === "ACTIVE" && (
+                <StudentQuestionView
+                  question={currentQuestion}
+                  participantId={participantId}
+                  remainingTime={remainingTime}
+                />
+              )}
 
-          </div>
+              {currentQuestion.status === "RESULTS" && stats && stats?.questionId === currentQuestion.id && (
+                <StudentResultsView
+                  question={currentQuestion}
+                  stats={stats}
+                />
+              )}
+
+              {currentQuestion.status === "RESULTS" && !stats && (
+                <div className="text-white text-center py-10">
+                  Cargando resultados...
+                </div>
+              )}
+
+              {currentQuestion.status === "IDLE" && (
+                <div className="text-white text-center py-10">
+                  Esperando a que empiece la pregunta...
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
+
+      {joined && isActive && currentSlide && (
+
+      <div className="absolute bottom-6 right-6 flex gap-4 z-20">
+
+        {slideIndex > 0 && (
+          <button
+            onClick={() => onSlideChange(slideIndex - 1)}
+            className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
+          >
+            Anterior
+          </button>
+        )}
+
+        <button
+          onClick={() => onSlideChange(Math.min(slideIndex + 1, slides.length - 1))}
+          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
+        >
+          Siguiente
+        </button>
+
+      </div>
+
+    )}
     </div>
   )
 }
