@@ -1,238 +1,281 @@
 import { Server, Socket } from "socket.io"
 import { prisma } from "@/lib/prisma"
-import { getLeaderboardByAccessCode, getQuestionStats } from "@/features/session/session-service"
+import { getLeaderboardByAccessCode } from "@/features/session/session-service"
 
 export function registerQuestionSockets(io: Server, socket: Socket) {
 
   socket.on("answer-submitted", async () => {
 
-    const accessCode = socket.data.accessCode
+    try {
 
-    if (!accessCode) return
-    if (socket.data.role !== "participant") return
+        const accessCode = socket.data.accessCode
 
-    const session = await prisma.teachingSession.findUnique({
-        where: { accessCode },
-    })
+        if (!accessCode) return
+        if (socket.data.role !== "participant") return
 
-    if (!session) return
-
-    const activeQuestion = await prisma.question.findFirst({
-        where: {
-            sessionId: session.id,
-            status: "ACTIVE",
-        },
-    })
-
-    if (!activeQuestion) return
-
-    const now = new Date()
-
-    if (activeQuestion.endedAt && activeQuestion.endedAt < now) {
-        return
-    }
-
-    const leaderboard = await getLeaderboardByAccessCode(accessCode)
-
-    if (leaderboard) {
-        io.to(accessCode).emit("leaderboard-updated", leaderboard)
-    }
-
-    io.to(accessCode).emit("question-stats-updated", {
-        questionId: activeQuestion.id
-    })
-
-  })
-
-  socket.on("launch-question", async () => {
-
-    const accessCode = socket.data.accessCode
-
-    if (!accessCode) return
-    if (socket.data.role !== "owner") return
-
-    const session = await prisma.teachingSession.findUnique({
-        where: { accessCode },
-        include: { questions: true },
-    })
-
-    if (!session) return
-
-    const question = await prisma.question.findFirst({
-        where: {
-            sessionId: session.id,
-            pageNumber: session.currentPage
-        }
-    })
-
-    if (!question) return
-    if (question.status !== "IDLE") return
-
-    io.to(accessCode).emit("question-countdown", {
-        seconds: 3,
-    })
-
-    await prisma.question.update({
-        where: { id: question.id },
-        data: { status: "COUNTDOWN" }
-    })
-
-    const COUNTDOWN = 3000
-
-    setTimeout(async () => {
-
-        const updatedSession = await prisma.teachingSession.findUnique({
-        where: { accessCode },
+        const session = await prisma.teachingSession.findUnique({
+            where: { accessCode },
         })
 
-        if (!updatedSession) return
-        if (updatedSession.currentPage !== question.pageNumber) return
+        if (!session) return
+
+        const activeQuestion = await prisma.question.findFirst({
+            where: {
+                sessionId: session.id,
+                status: "ACTIVE",
+            },
+        })
+
+        if (!activeQuestion) return
 
         const now = new Date()
 
-        const timeLimit = question.timeLimit ?? 30
+        if (activeQuestion.endedAt && activeQuestion.endedAt < now) {
+            return
+        }
 
-        const endedAt = new Date(
-        now.getTime() + timeLimit * 1000
-        )
+        const leaderboard = await getLeaderboardByAccessCode(accessCode)
 
-        await prisma.question.update({
-        where: { id: question.id },
-        data: {
-            status: "ACTIVE",
-            startedAt: now,
-            endedAt,
-        },
+        if (leaderboard) {
+            io.to(accessCode).emit("leaderboard-updated", leaderboard)
+        }
+
+        io.to(accessCode).emit("question-stats-updated", {
+            questionId: activeQuestion.id
         })
 
-        io.to(accessCode).emit("question-started", {
-        questionId: question.id,
-        timeLimit,
-        startedAt: now,
-        })
+    } catch (error) {
+        console.error("answer-submitted failed", error)
+    }
 
-        setTimeout(async () => {
+    })
+
+    socket.on("launch-question", async () => {
+
+        try {
+
+            const accessCode = socket.data.accessCode
+
+            if (!accessCode) return
+            if (socket.data.role !== "owner") return
+
+            const session = await prisma.teachingSession.findUnique({
+                where: { accessCode },
+            })
+
+            if (!session) return
+
+            const slide = await prisma.slide.findFirst({
+                where: {
+                    sessionId: session.id,
+                    order: session.currentPage,
+                },
+                include: {
+                    question: true,
+                },
+            })
+
+        const question = slide?.question
+
+        if (!question) return
+        if (question.status !== "IDLE") return
+
+        io.to(accessCode).emit("question-countdown", {
+            seconds: 3,
+        })
 
         await prisma.question.update({
             where: { id: question.id },
-            data: { status: "RESULTS", },
+            data: { status: "COUNTDOWN" }
         })
 
-        io.to(accessCode).emit("question-ended")
+        const COUNTDOWN = 3000
 
-        io.to(accessCode).emit("question-stats-updated", {
-            questionId: question.id,
-        })
+        setTimeout(async () => {
 
-        }, timeLimit * 1000)
+            try {
 
-    }, COUNTDOWN)
+                const updatedSession = await prisma.teachingSession.findUnique({
+                    where: { accessCode },
+                })
 
-  })
+                if (!updatedSession) return
+                if (updatedSession.currentPage !== slide.order) return
 
-  socket.on("end-question", async () => {
+                const now = new Date()
+                const timeLimit = question.timeLimit ?? 30
+                const endedAt = new Date(now.getTime() + timeLimit * 1000)
 
-    const accessCode = socket.data.accessCode
+                await prisma.question.update({
+                    where: { id: question.id },
+                    data: {
+                        status: "ACTIVE",
+                        startedAt: now,
+                        endedAt,
+                    },
+                })
 
-    if (!accessCode) return
-    if (socket.data.role !== "owner") return
+                io.to(accessCode).emit("question-started", {
+                    questionId: question.id,
+                    timeLimit,
+                    startedAt: now,
+                })
 
-    const session = await prisma.teachingSession.findUnique({
-        where: { accessCode },
-        include: { questions: true },
-    })
+                setTimeout(async () => {
 
-    if (!session) return
+                    try {
 
-    const activeQuestion = session.questions.find(
-        q => q.status === "ACTIVE"
-    )
+                        await prisma.question.update({
+                            where: { id: question.id },
+                            data: { status: "RESULTS", },
+                        })
 
-    if (!activeQuestion) return
+                    io.to(accessCode).emit("question-ended")
 
-    const now = new Date()
+                    io.to(accessCode).emit("question-stats-updated", {
+                        questionId: question.id,
+                    })
 
-    await prisma.question.update({
-        where: { id: activeQuestion.id },
-        data: {
-            status: "RESULTS",
-            endedAt: now,
-        },
-    })
+                    } catch (error) {
+                        console.error("launch-question results timeout failed", error)
+                    }
 
-    io.to(accessCode).emit("question-ended")
-    io.to(accessCode).emit("question-stats-updated", {
-    questionId: activeQuestion.id,
-    })
-
-  })
-
-  socket.on("request-question-state", async ({ accessCode, pageNumber }) => {
-
-    if (!accessCode || typeof pageNumber !== "number") return
-
-    const session = await prisma.teachingSession.findUnique({
-        where: { accessCode }
-    })
-
-    if (!session) return
-
-    const question = await prisma.question.findFirst({
-        where: {
-        sessionId: session.id,
-        pageNumber
+                }, timeLimit * 1000)
+            } catch (error) {
+                console.error("launch-question countdown timeout failed", error)
+            }
+        }, COUNTDOWN)
+        } catch (error) {
+            console.error("launch-question failed", error)
         }
     })
 
-    if (!question) return
+    socket.on("end-question", async () => {
 
-    if (question.status === "RESULTS") {
+        try {
 
-        socket.emit("question-stats-updated", {
-        questionId: question.id,
+            const accessCode = socket.data.accessCode
+
+            if (!accessCode) return
+            if (socket.data.role !== "owner") return
+
+            const session = await prisma.teachingSession.findUnique({
+                where: { accessCode },
+            })
+
+            if (!session) return
+
+            const activeQuestion = await prisma.question.findFirst({
+                where: {
+                    sessionId: session.id,
+                    status: "ACTIVE",
+                },
+            })
+
+            if (!activeQuestion) return
+
+            const now = new Date()
+
+            await prisma.question.update({
+                where: { id: activeQuestion.id },
+                data: {
+                    status: "RESULTS",
+                    endedAt: now,
+                },
+            })
+
+            io.to(accessCode).emit("question-ended")
+            io.to(accessCode).emit("question-stats-updated", {
+                questionId: activeQuestion.id,
+            })
+
+        } catch (error) {
+            console.error("end-question failed", error)
+        }
+    })
+
+    socket.on("request-question-state", async ({ accessCode, slideIndex }) => {
+
+        try {
+
+            if (!accessCode || typeof slideIndex !== "number") return
+
+            const session = await prisma.teachingSession.findUnique({
+                where: { accessCode }
+            })
+
+            if (!session) return
+
+            const slide = await prisma.slide.findFirst({
+            where: {
+                sessionId: session.id,
+                order: slideIndex,
+            },
+            include: {
+                question: true,
+            },
+            })
+
+            if (!slide || !slide.question) return
+            const question = slide.question
+
+            if (question.status === "RESULTS") {
+                socket.emit("question-stats-updated", {
+                    questionId: question.id,
+                })
+            }
+
+            } catch (error) {
+                console.error("request-question-state failed", error)
+            }   
+    })
+
+    socket.on("relaunch-question", async () => {
+
+        try {
+
+            const accessCode = socket.data.accessCode
+
+            if (!accessCode) return
+            if (socket.data.role !== "owner") return
+
+            const session = await prisma.teachingSession.findUnique({
+                where: { accessCode }
+            })
+
+            if (!session) return
+
+            const slide = await prisma.slide.findFirst({
+                where: {
+                sessionId: session.id,
+                order: session.currentPage,
+                },
+                include: {
+                question: true,
+                },
+            })
+
+            const question = slide?.question
+
+            if (!question) return
+
+            await prisma.answer.deleteMany({
+                where: { questionId: question.id }
+            })
+
+            await prisma.question.update({
+                where: { id: question.id },
+                data: {
+                    status: "IDLE",
+                    startedAt: null,
+                    endedAt: null
+                }
+            })
+
+            io.to(accessCode).emit("question-reset")
+        } catch (error) {
+            console.error("relaunch-question failed", error)
+        }
         })
 
     }
-
-  })
-
-  socket.on("relaunch-question", async () => {
-
-    const accessCode = socket.data.accessCode
-
-    if (!accessCode) return
-    if (socket.data.role !== "owner") return
-
-    const session = await prisma.teachingSession.findUnique({
-        where: { accessCode }
-    })
-
-    if (!session) return
-
-    const question = await prisma.question.findFirst({
-        where: {
-        sessionId: session.id,
-        pageNumber: session.currentPage
-        }
-    })
-
-    if (!question) return
-
-    await prisma.answer.deleteMany({
-        where: { questionId: question.id }
-    })
-
-    await prisma.question.update({
-        where: { id: question.id },
-        data: {
-        status: "IDLE",
-        startedAt: null,
-        endedAt: null
-        }
-    })
-
-    io.to(accessCode).emit("question-reset")
-
-  })
-
-}

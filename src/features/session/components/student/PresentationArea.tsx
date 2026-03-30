@@ -186,8 +186,16 @@ export default function PresentationArea({
               )}
 
               {currentQuestion.status === "IDLE" && (
-                <div className="text-white text-center py-10">
-                  Esperando a que empiece la pregunta...
+                <div className="flex h-full w-full items-center justify-center bg-[#0b162c] px-6">
+                  <div className="max-w-md rounded-2xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-xl backdrop-blur-sm">
+                    <div className="mb-4 text-5xl">🔒</div>
+                    <h2 className="mb-3 text-2xl font-bold text-white">
+                      Mantente atento
+                    </h2>
+                    <p className="text-white/75">
+                      La siguiente pregunta aún está bloqueada. El profesor la lanzará en breve.
+                    </p>
+                  </div>
                 </div>
               )}
             </>
@@ -195,29 +203,6 @@ export default function PresentationArea({
         </>
       )}
 
-      {joined && isActive && currentSlide && (
-
-      <div className="absolute bottom-6 right-6 flex gap-4 z-20">
-
-        {slideIndex > 0 && (
-          <button
-            onClick={() => onSlideChange(slideIndex - 1)}
-            className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
-          >
-            Anterior
-          </button>
-        )}
-
-        <button
-          onClick={() => onSlideChange(Math.min(slideIndex + 1, slides.length - 1))}
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
-        >
-          Siguiente
-        </button>
-
-      </div>
-
-    )}
     </div>
   )
 }

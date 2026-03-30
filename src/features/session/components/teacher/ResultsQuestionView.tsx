@@ -30,26 +30,6 @@ export default function ResultsQuestionView({
         onRelaunch={onRelaunch}
       />
 
-      <div className="absolute bottom-8 right-8 flex gap-4">
-
-        {hasPrevious && (
-          <button
-            onClick={onPrevious}
-            className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-xl font-semibold"
-          >
-            Anterior
-          </button>
-        )}
-
-        <button
-          onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
-        >
-          Siguiente
-        </button>
-
-      </div>
-
     </div>
   )
 
