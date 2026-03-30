@@ -112,3 +112,24 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.pretty-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.pretty-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pretty-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.5);
+  border-radius: 9999px;
+}
+
+.pretty-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(161, 161, 170, 0.8);
+}
+
+.pretty-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(161, 161, 170, 0.5) transparent;
+}

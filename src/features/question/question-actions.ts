@@ -88,9 +88,6 @@ import { createQuestionWithSlide } from "../session/slide-service"
         },
       })
 
-      await prisma.slide.delete({
-        where: { id: slide.id },
-      })
     }
 
   }

@@ -3,11 +3,24 @@
 import { useState, useTransition } from "react"
 import { createQuestionAction } from "@/features/question/question-actions"
 import { useRouter } from "next/navigation"
+import { SlideCarousel } from "@/features/question/components/SlideCarousel"
 
-export default function CreateQuestionModal({
+type SlideCarouselItem = {
+  id: string
+  order: number
+  type: "PDF" | "QUESTION"
+  page?: number
+  question: {
+    content: string
+  } | null
+}
+
+export function CreateQuestionModal({
   sessionId,
+  slides
 }: {
   sessionId: string
+  slides: SlideCarouselItem[]
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -71,7 +84,7 @@ export default function CreateQuestionModal({
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="w-full max-w-lg rounded-2xl bg-zinc-900 text-white p-8 space-y-6 shadow-2xl border border-zinc-700">
+          <div className="w-full max-w-2xl rounded-2xl bg-zinc-900 text-white p-8 space-y-6 shadow-2xl border border-zinc-700">
 
             <h2 className="text-2xl font-bold">
               Nueva pregunta
@@ -81,12 +94,10 @@ export default function CreateQuestionModal({
               <label className="text-sm text-zinc-400">
                 Posición (slide)
               </label>
-              <input
-                type="number"
-                min={0}
-                value={insertAt}
-                onChange={(e) => setInsertAt(Number(e.target.value))}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              <SlideCarousel
+                slides={slides}
+                selectedIndex={insertAt}
+                onSelect={setInsertAt}
               />
             </div>
 

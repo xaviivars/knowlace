@@ -3,8 +3,8 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import CreateQuestionModal from "@/features/question/components/CreateQuestionModal"
-import { deleteQuestionWithSlide } from "@/features/question/question-actions"
+import { CreateQuestionModal } from "@/features/question/components/CreateQuestionModal"
+import { deleteQuestionWithSlide, getSlidesBySessionAction } from "@/features/question/question-actions"
 
 export default async function SessionEditorPage({
   params,
@@ -41,6 +41,21 @@ export default async function SessionEditorPage({
     throw new Error("Forbidden")
   }
 
+  const fullSlides = await getSlidesBySessionAction(session.id)
+
+  const carouselSlides = fullSlides.map((slide, index) => ({
+    id: slide.type === "PDF" ? `pdf-${slide.page}` : `question-${slide.question.id}`,
+    order: index,
+    type: slide.type as "PDF" | "QUESTION",
+    page: slide.type === "PDF" ? slide.page : undefined,
+    question:
+      slide.type === "QUESTION"
+        ? { content: slide.question.content }
+        : null,
+  }))
+
+  console.log(carouselSlides)
+
   return (
     <div className="max-w-3xl mx-auto py-10 space-y-8">
 
@@ -59,7 +74,7 @@ export default async function SessionEditorPage({
       </div>
 
     <div className="flex justify-end">
-        <CreateQuestionModal sessionId={session.id} />
+        <CreateQuestionModal sessionId={session.id} slides={carouselSlides} />
     </div>
 
       <div className="space-y-6">
@@ -71,7 +86,7 @@ export default async function SessionEditorPage({
             if (slide.type === "PDF") {
               return (
                 <div key={slide.id} className="border rounded-xl p-5 bg-gray-100">
-                  Página PDF {slide.order + 1}
+                  Página PDF {slide.page}
                 </div>
               )
             }
