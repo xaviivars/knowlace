@@ -22,13 +22,15 @@ export function registerSessionSockets(io: Server, socket: Socket) {
 
     socket.data.accessCode = accessCode
     socket.data.role = "owner"
+
+    socket.emit("slide-updated", session.currentPage)
   })
 
 
   socket.on("viewer-join", async (accessCode: string) => {
 
     const session = await prisma.teachingSession.findUnique({
-        where: { accessCode },
+      where: { accessCode },
     })
 
     if (!session) return
@@ -143,7 +145,7 @@ export function registerSessionSockets(io: Server, socket: Socket) {
     if (newIndex < 0) return
 
     const session = await prisma.teachingSession.findUnique({
-        where: { accessCode },
+      where: { accessCode },
     })
 
     if (!session) return
@@ -163,9 +165,7 @@ export function registerSessionSockets(io: Server, socket: Socket) {
       }
     })
 
-    if (!slide) return
-
-    if (slide.type === "QUESTION" && slide.question && slide.question.endedAt) {
+    if (slide?.type === "QUESTION" && slide.question?.endedAt) {
       io.to(accessCode).emit("question-stats-updated", {
         questionId: slide.question.id,
       })

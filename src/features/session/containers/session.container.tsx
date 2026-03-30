@@ -9,7 +9,6 @@ import { joinSession, reconnectParticipant, leaveParticipant } from "@/features/
 
 import SessionLayout from "@/features/session/session.layout"
 
-import { QuestionWithOptions } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
 import { useQuestionStats } from "../hooks/useQuestionStats"
 
@@ -24,7 +23,7 @@ type Props = {
   initialParticipants: Participant[]
   initialSlideIndex: number
   slides: Slide[]
-  pdfUrl: String
+  pdfUrl: string
 }
 
 export default function SessionContainer({
@@ -51,7 +50,24 @@ export default function SessionContainer({
   const [teacherSlideIndex, setTeacherSlideIndex] = useState(initialSlideIndex)
   const [localSlideIndex, setLocalSlideIndex] = useState(initialSlideIndex)
 
-  const isFollowingTeacher = localSlideIndex === teacherSlideIndex
+  function getSlidePageNumber(slides: Slide[], index: number) {
+    const slide = slides[index]
+
+    if (slide.type === "PDF") {
+      return slide.page
+    }
+
+    const prevPdf = [...slides]
+      .slice(0, index)
+      .reverse()
+      .find((s) => s.type === "PDF")
+
+    return prevPdf?.page ?? 1
+  }
+
+  const isFollowingTeacher =
+    getSlidePageNumber(slides, localSlideIndex) ===
+    getSlidePageNumber(slides, teacherSlideIndex)
 
   const [leaderboard, setLeaderboard] = useState<Participant[]>([])
   const [countdown, setCountdown] = useState<number | null>(null)
@@ -68,6 +84,8 @@ export default function SessionContainer({
   const { stats, refetchStats } = useQuestionStats(
     currentQuestion?.id ?? null
   )
+
+  const teacherPageNumber = getSlidePageNumber(slides, teacherSlideIndex)
 
   useEffect(() => {
 
@@ -237,7 +255,7 @@ export default function SessionContainer({
       socket.off("session-started")
       socket.off("session-ended")
       socket.off("connect")
-      socket.off("page-updated")
+      socket.off("slide-updated")
       socket.off("question-started")
       socket.off("question-ended")
       socket.off("leaderboard-updated")
@@ -351,6 +369,7 @@ export default function SessionContainer({
       countdown={countdown}
       isFollowingTeacher={isFollowingTeacher}
       teacherSlideIndex={teacherSlideIndex}
+      teacherPageNumber={teacherPageNumber}
       refetchStats={refetchStats}
       pdfUrl={pdfUrl}
     />

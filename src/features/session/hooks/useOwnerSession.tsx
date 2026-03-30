@@ -3,21 +3,29 @@
 import { useEffect, useState } from "react"
 import { getSocket } from "@/lib/socket"
 
-export function useOwnerSession(accessCode: string) {
+export function useOwnerSession(accessCode: string, initialSlideIndex: number) {
 
   const socket = getSocket()
 
   const [countdown, setCountdown] = useState<number | null>(null)
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
-  const [slideIndex, setSlideIndex] = useState(0)
+  const [slideIndex, setSlideIndex] = useState(initialSlideIndex)
 
   useEffect(() => {
 
-    socket.emit("owner-join", accessCode)
+    if (socket.connected) {
+      socket.emit("owner-join", accessCode)
+    } else {
+      socket.on("connect", () => {
+        socket.emit("owner-join", accessCode)
+      })
+    }
 
-    socket.on("slide-updated", (index: number) => {
+    const handleSlideUpdated = (index: number) => {
       setSlideIndex(index)
-    })
+    }
+
+    socket.on("slide-updated", handleSlideUpdated)
 
     socket.on("question-countdown", ({ seconds }) => {
 

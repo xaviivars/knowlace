@@ -75,6 +75,31 @@ export default function PresentationArea({
     }
   }, [currentQuestion?.id, currentQuestion?.status, stats?.questionId])
 
+  function getCurrentPageNumber() {
+    if (!currentSlide) return 0
+
+    if (currentSlide.type === "PDF") {
+      return currentSlide.page
+    }
+
+    const prevPdf = [...slides]
+      .slice(0, slideIndex)
+      .reverse()
+      .find((s) => s.type === "PDF")
+
+    return prevPdf?.page ?? 0
+  }
+
+  function getTotalPdfPages() {
+    return slides.filter((s) => s.type === "PDF").length
+  }
+
+  const currentPage = getCurrentPageNumber()
+  const totalPages = getTotalPdfPages()
+
+  const canGoPrevious = slideIndex > 0
+  const canGoNext = slideIndex < slides.length - 1
+
   return (
     
     <div className="relative flex flex-col flex-1 bg-[#0b162c]">
@@ -100,6 +125,28 @@ export default function PresentationArea({
 
       {joined && isActive && currentSlide && (
         <>
+          <div className="absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-4 rounded-xl border border-white/15 bg-black/65 px-4 py-2 text-white shadow-lg backdrop-blur-sm">
+            <button
+              onClick={() => onSlideChange(slideIndex - 1)}
+              disabled={!canGoPrevious}
+              className="rounded-md bg-white/15 px-3 py-1 text-sm font-medium transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              ←
+            </button>
+
+            <span className="min-w-35 text-center text-sm font-medium">
+              Página {currentPage} de {totalPages}
+            </span>
+
+            <button
+              onClick={() => onSlideChange(slideIndex + 1)}
+              disabled={!canGoNext}
+              className="rounded-md bg-white/15 px-3 py-1 text-sm font-medium transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              →
+            </button>
+          </div>
+
           {/* PDF */}
           {currentSlide.type === "PDF" && (
             <StudentPdfView

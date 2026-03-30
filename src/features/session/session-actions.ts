@@ -5,6 +5,10 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { generateAccessCode } from "@/lib/utils/generateAccessCode"
 
+// REVISAR: De momento estático
+const DEFAULT_PDF_URL = "/lorem_ipsum.pdf"
+const DEFAULT_PDF_PAGES = 24
+
 export async function createSession(title: string, pdfPages: number, pdfUrl: string, description?: string) {
 
   const session = await auth.api.getSession({
@@ -31,8 +35,8 @@ export async function createSession(title: string, pdfPages: number, pdfUrl: str
       description,
       ownerId: session.user.id,
       accessCode,
-      pdfPages,
-      pdfUrl
+      pdfUrl: pdfUrl ?? DEFAULT_PDF_URL,
+      pdfPages: pdfPages ?? DEFAULT_PDF_PAGES,
     },
   })
 

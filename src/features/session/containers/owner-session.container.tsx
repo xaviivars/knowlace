@@ -20,7 +20,7 @@ export default function OwnerSessionContainer({
   initialIsActive: boolean
   initialSlideIndex: number
   slides: any[]
-  pdfUrl: String
+  pdfUrl: string
 }) {
 
   return (

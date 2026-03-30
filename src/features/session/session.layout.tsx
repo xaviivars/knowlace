@@ -36,9 +36,10 @@ type Props = {
 
   isFollowingTeacher: boolean
   teacherSlideIndex: number
+  teacherPageNumber: number
 
   refetchStats: () => void
-  pdfUrl: String
+  pdfUrl: string
 }
 
 export default function SessionLayout(props: Props) {
@@ -47,6 +48,7 @@ export default function SessionLayout(props: Props) {
     sessionTitle,
     isFollowingTeacher,
     teacherSlideIndex,
+    teacherPageNumber,
     onSlideChange,
     onGoHome, 
     countdown, 
@@ -91,7 +93,7 @@ export default function SessionLayout(props: Props) {
         {!isFollowingTeacher && (
           <div className="absolute top-20 left-6 bg-yellow-500 text-black px-4 py-2 rounded shadow-lg z-20">
             <span className="mr-3">
-              Profesor está en página {teacherSlideIndex}
+              Profesor está en página {teacherPageNumber}
             </span>
             <button
               onClick={() => onSlideChange(teacherSlideIndex)}

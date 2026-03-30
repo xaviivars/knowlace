@@ -9,12 +9,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString()
 
 type PdfViewerProps = {
-  fileUrl: string
+  pdfUrl: string
   pageNumber: number
 }
 
 export default function PdfViewer({
-  fileUrl,
+  pdfUrl,
   pageNumber,
 }: PdfViewerProps) {
 
@@ -25,17 +25,10 @@ export default function PdfViewer({
   }
 
   return (
-    <div className="relative w-full h-full bg-[#0b162c] flex flex-col items-center">
 
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 px-4 py-2 rounded flex gap-4 items-center z-10">
-        <span className="text-sm text-white">
-          Página {pageNumber} {numPages && `de ${numPages}`}
-        </span>
-      </div>
-
-      <div className="h-full w-full overflow-auto flex justify-center">
+      <div className="flex h-full w-full justify-center overflow-auto bg-[#0b162c]">
         <Document
-          file={fileUrl}
+          file={pdfUrl}
           onLoadSuccess={onDocumentLoadSuccess}
           loading={<p className="text-white">Cargando PDF...</p>}
         >
@@ -47,6 +40,5 @@ export default function PdfViewer({
           />
         </Document>
       </div>
-    </div>
   )
 }

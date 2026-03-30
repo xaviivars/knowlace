@@ -9,7 +9,9 @@ export default function OwnerSessionLayout({
   title,
   description,
   isActive,
-  slides
+  slides,
+  pdfUrl,
+  initialSlideIndex
 }: {
   sessionId: string
   accessCode: string
@@ -18,6 +20,7 @@ export default function OwnerSessionLayout({
   isActive: boolean
   initialSlideIndex: number
   slides: any
+  pdfUrl: string
 }) {
 
   return (
@@ -43,6 +46,8 @@ export default function OwnerSessionLayout({
           accessCode={accessCode}
           isOwner={true}
           slides={slides}
+          pdfUrl={pdfUrl}
+          initialSlideIndex={initialSlideIndex}
         />
       </div>
 

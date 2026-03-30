@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { createSession } from "@/features/session/session-actions"
 import { useRouter } from "next/navigation"
-import { getPdfPagesFromUrl } from "@/lib/pdf/getPdfPages"
-import * as pdfjsLib from "pdfjs-dist"
+// import { getPdfPagesFromUrl } from "@/lib/pdf/getPdfPages"
+//import * as pdfjsLib from "pdfjs-dist"
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+//pdfjsLib.GlobalWorkerOptions.workerSrc =
+//  `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 export default function NewSessionForm() {
   const [title, setTitle] = useState("")
@@ -25,9 +25,11 @@ export default function NewSessionForm() {
 
       const pdfUrl = "/lorem_ipsum.pdf"
 
-      const pdfPages = await getPdfPagesFromUrl(pdfUrl)
+      // const pdfPages = await getPdfPagesFromUrl(pdfUrl)
 
-      const session = await createSession(title, pdfPages, description, pdfUrl)
+      const pdfPages = 24
+
+      const session = await createSession(title, pdfPages, pdfUrl, description)
 
       router.push(`/dashboard/sessions/${session.id}`)
 
@@ -87,7 +89,6 @@ export default function NewSessionForm() {
               accept="application/pdf"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className="text-white"
-              required
             />
           </div>
 

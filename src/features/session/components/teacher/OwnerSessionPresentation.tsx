@@ -24,11 +24,13 @@ export default function OwnerSessionPresentation({
   slides,
   isOwner,
   pdfUrl,
+  initialSlideIndex
 }: {
   accessCode: string
   slides: Slide[]
   isOwner: boolean
   pdfUrl: string
+  initialSlideIndex: number
 }) {
 
   const router = useRouter()
@@ -39,7 +41,7 @@ export default function OwnerSessionPresentation({
     remainingTime,
     slideIndex,
     setSlideIndex
-  } = useOwnerSession(accessCode)
+  } = useOwnerSession(accessCode, initialSlideIndex)
 
   const currentSlide = slides[slideIndex]
 
@@ -51,6 +53,26 @@ export default function OwnerSessionPresentation({
   const { stats, refetchStats } = useQuestionStats(
     currentQuestion?.id ?? null
   )
+
+  function getCurrentPageNumber() {
+    if (!currentSlide) return 0
+
+    if (currentSlide.type === "PDF") {
+      return currentSlide.page
+    }
+
+    // si estás en pregunta → muestra última página PDF previa
+    const prevPdf = [...slides]
+      .slice(0, slideIndex)
+      .reverse()
+      .find(s => s.type === "PDF")
+
+    return prevPdf?.page ?? 0
+  }
+
+  function getTotalPdfPages() {
+    return slides.filter(s => s.type === "PDF").length;
+  }
 
   useEffect(() => {
 
@@ -88,75 +110,102 @@ export default function OwnerSessionPresentation({
 
   function renderContent() {
 
-      if (!currentSlide) return null
+    if (!currentSlide) return null
 
-      if (currentSlide.type === "PDF" ) {
-        return (
-          <PdfViewer
-            fileUrl={pdfUrl}
-            pageNumber={currentSlide.page}
-          />
-        )
-      }
-
-      const question = currentSlide.question
-      if (!question) return null
-
-      switch (question.status) {
-
-        case "COUNTDOWN":
-          return <CountdownOverlay seconds={countdown ?? 0} />
-
-        case "ACTIVE":
-          return (
-            <ActiveQuestionView
-              question={question}
-              remainingTime={remainingTime ?? undefined}
-              isOwner={isOwner}
-              stats={stats ?? undefined}
-              onEnd={() => socket.emit("end-question")}
-            />
-          )
-
-        case "RESULTS":
-
-          if (!stats) {
-            return (
-              <div className="text-white text-center py-10">
-                Cargando resultados...
-              </div>
-            )
-          }
-      
-          return (
-            <ResultsQuestionView
-              question={question}
-              stats={stats}
-              onNext={() => handleSlideChange(slideIndex + 1)}
-              onPrevious={() => handleSlideChange(slideIndex - 1)}
-              onRelaunch={() => socket.emit("relaunch-question")}
-              hasPrevious={slideIndex > 0}
-            />
-          )
-
-        default:
-          return (
-            <IdleQuestionView
-              question={question}
-              isOwner={isOwner}
-              onNext={() => handleSlideChange(slideIndex + 1)}
-              onPrevious={() => handleSlideChange(slideIndex - 1)}
-              onLaunch={() => socket.emit("launch-question")}
-              hasPrevious={slideIndex > 0}
-            />
-          )
-      }
-
+    if (currentSlide.type === "PDF" ) {
+      return (
+        <PdfViewer
+          pdfUrl={pdfUrl}
+          pageNumber={currentSlide.page}
+        />
+      )
     }
 
-    return (
-      <div className="relative flex h-full w-full flex-col justify-center">
-        {renderContent()}
+    const question = currentSlide.question
+    if (!question) return null
+
+    switch (question.status) {
+
+      case "COUNTDOWN":
+        return <CountdownOverlay seconds={countdown ?? 0} />
+
+      case "ACTIVE":
+        return (
+          <ActiveQuestionView
+            question={question}
+            remainingTime={remainingTime ?? undefined}
+            isOwner={isOwner}
+            stats={stats ?? undefined}
+            onEnd={() => socket.emit("end-question")}
+          />
+        )
+
+      case "RESULTS":
+
+        if (!stats) {
+          return (
+            <div className="text-white text-center py-10">
+              Cargando resultados...
+            </div>
+          )
+        }
+    
+        return (
+          <ResultsQuestionView
+            question={question}
+            stats={stats}
+            onNext={() => handleSlideChange(slideIndex + 1)}
+            onPrevious={() => handleSlideChange(slideIndex - 1)}
+            onRelaunch={() => socket.emit("relaunch-question")}
+            hasPrevious={slideIndex > 0}
+          />
+        )
+
+      default:
+        return (
+          <IdleQuestionView
+            question={question}
+            isOwner={isOwner}
+            onNext={() => handleSlideChange(slideIndex + 1)}
+            onPrevious={() => handleSlideChange(slideIndex - 1)}
+            onLaunch={() => socket.emit("launch-question")}
+            hasPrevious={slideIndex > 0}
+          />
+        )
+    }
+
+  }
+
+  return (
+    <div className="relative flex h-full w-full flex-col ">
+
+        <div className="absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-4 rounded-xl border border-white/15 bg-black/65 px-4 py-2 text-white shadow-lg backdrop-blur-sm">
+
+        <button
+          onClick={() => handleSlideChange(slideIndex - 1)}
+          disabled={slideIndex === 0}
+          className="rounded-md bg-white/15 px-3 py-1 text-sm font-medium transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          ←
+        </button>
+
+        <span className="min-w-35 text-center text-sm font-medium">
+          Página {getCurrentPageNumber()} de {getTotalPdfPages()}
+        </span>
+
+        <button
+          onClick={() => handleSlideChange(slideIndex + 1)}
+          disabled={slideIndex >= slides.length - 1}
+          className="rounded-md bg-white/15 px-3 py-1 text-sm font-medium transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          →
+        </button>
+
       </div>
-    )
+
+      {renderContent()}
+      
+    </div>
+  )
 }
+

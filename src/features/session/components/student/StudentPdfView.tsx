@@ -19,7 +19,7 @@ export default function StudentPdfView({
 
   return (
     <PdfViewer
-      fileUrl={pdfUrl}
+      pdfUrl={pdfUrl}
       pageNumber={pageNumber}
     />
   )
