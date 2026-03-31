@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import OwnerSessionLayout from "@/features/session/owner-session.layout"
 import { useOwnerSession } from "@/features/session/hooks/useOwnerSession"
@@ -16,6 +16,8 @@ type Props = {
   initialSlideIndex: number
   slides: Slide[]
   pdfUrl: string
+  initialParticipants: any[]
+  initialLeaderboard: any[]
 }
 
 export default function OwnerSessionContainer({
@@ -26,7 +28,9 @@ export default function OwnerSessionContainer({
   initialIsActive,
   initialSlideIndex,
   slides,
-  pdfUrl
+  pdfUrl,
+  initialParticipants,
+  initialLeaderboard
 }: Props) {
 
   const router = useRouter()
@@ -50,6 +54,9 @@ export default function OwnerSessionContainer({
     currentQuestion?.id ?? null
   )
 
+  const [participants, setParticipants] = useState(initialParticipants)
+  const [leaderboard, setLeaderboard] = useState(initialLeaderboard)
+
   useEffect(() => {
     const handleStatsUpdated = ({ questionId }: { questionId: string }) => {
       if (questionId === currentQuestion?.id) {
@@ -61,16 +68,28 @@ export default function OwnerSessionContainer({
       router.refresh()
     }
 
+    const handleParticipantsList = (list: any[]) => {
+      setParticipants(list)
+    }
+
+    const handleLeaderboardUpdated = (data: any[]) => {
+      setLeaderboard(data)
+    }
+
     socket.on("question-stats-updated", handleStatsUpdated)
     socket.on("question-started", handleStateChange)
     socket.on("question-ended", handleStateChange)
     socket.on("question-reset", handleStateChange)
+    socket.on("participants-list", handleParticipantsList)
+    socket.on("leaderboard-updated", handleLeaderboardUpdated)
 
     return () => {
       socket.off("question-stats-updated", handleStatsUpdated)
       socket.off("question-started", handleStateChange)
       socket.off("question-ended", handleStateChange)
       socket.off("question-reset", handleStateChange)
+      socket.off("participants-list", handleParticipantsList)
+      socket.off("leaderboard-updated", handleLeaderboardUpdated)
     }
   }, [socket, currentQuestion?.id, refetchStats, router])
 
@@ -113,6 +132,8 @@ export default function OwnerSessionContainer({
       pdfUrl={pdfUrl}
       countdown={countdown}
       remainingTime={remainingTime}
+      participants={participants}
+      leaderboard={leaderboard}
       stats={stats}
       currentPageNumber={getCurrentPageNumber()}
       totalPdfPages={getTotalPdfPages()}

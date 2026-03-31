@@ -34,6 +34,7 @@ export async function getLeaderboardByAccessCode(accessCode: string) {
       id: true,
       name: true,
       score: true,
+      isActive: true
     },
   })
 }

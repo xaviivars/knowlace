@@ -15,7 +15,7 @@ type SidebarProps = {
   onLeave: () => void
 }
 
-export default function Sidebar({
+export default function StudentSidebar({
   sessionTitle,
   participants,
   leaderboard,

@@ -1,9 +1,9 @@
 "use client"
 
 import PresentationArea from "@/features/session/components/student/PresentationArea"
-import Sidebar from "@/features/session/components/Sidebar"
 import { QuestionStats } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
+import StudentSidebar from "@/features/session/components/student/StudentSidebar"
 
 type Props = {
   sessionTitle: string
@@ -137,7 +137,7 @@ export default function SessionLayout(props: Props) {
           pdfUrl={pdfUrl}
         />
 
-        <Sidebar
+        <StudentSidebar
           sessionTitle={sessionTitle}
           participants={participants}
           leaderboard={leaderboard}

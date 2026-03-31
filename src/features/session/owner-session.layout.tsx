@@ -4,7 +4,8 @@ import SessionControls from "@/features/session/components/teacher/SessionContro
 import OwnerSessionPresentation from "@/features/session/components/teacher/OwnerSessionPresentation"
 import { Slide } from "@/features/session/session.types"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
-
+import { OwnerSidebar } from "@/features/session/components/teacher/OwnerSidebar"
+  
 type Props = {
   sessionId: string
   accessCode: string
@@ -17,6 +18,8 @@ type Props = {
   slides: Slide[]
   pdfUrl: string
   countdown: number | null
+  participants: any[]
+  leaderboard: any[]
   remainingTime: number | null
   stats: QuestionStats | null
   currentPageNumber: number
@@ -39,6 +42,8 @@ export default function OwnerSessionLayout({
   slides,
   pdfUrl,
   countdown,
+  participants,
+  leaderboard,
   remainingTime,
   stats,
   currentPageNumber,
@@ -67,22 +72,32 @@ export default function OwnerSessionLayout({
         />
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        <OwnerSessionPresentation
-          currentSlide={currentSlide}
-          currentQuestion={currentQuestion}
-          slideIndex={slideIndex}
-          slides={slides}
-          pdfUrl={pdfUrl}
-          countdown={countdown}
-          remainingTime={remainingTime}
-          stats={stats}
-          currentPageNumber={currentPageNumber}
-          totalPdfPages={totalPdfPages}
-          onSlideChange={onSlideChange}
-          onLaunchQuestion={onLaunchQuestion}
-          onEndQuestion={onEndQuestion}
-          onRelaunchQuestion={onRelaunchQuestion}
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-hidden">
+          <OwnerSessionPresentation
+            currentSlide={currentSlide}
+            currentQuestion={currentQuestion}
+            slideIndex={slideIndex}
+            slides={slides}
+            pdfUrl={pdfUrl}
+            countdown={countdown}
+            remainingTime={remainingTime}
+            stats={stats}
+            currentPageNumber={currentPageNumber}
+            totalPdfPages={totalPdfPages}
+            onSlideChange={onSlideChange}
+            onLaunchQuestion={onLaunchQuestion}
+            onEndQuestion={onEndQuestion}
+            onRelaunchQuestion={onRelaunchQuestion}
+          />
+        </div>
+
+        <OwnerSidebar
+          sessionTitle={title}
+          accessCode={accessCode}
+          isActive={isActive}
+          participants={participants}
+          leaderboard={leaderboard}
         />
       </div>
     </div>

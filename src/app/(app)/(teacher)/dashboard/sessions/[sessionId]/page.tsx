@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import OwnerSessionContainer from "@/features/session/containers/owner-session.container"
 import { getSlidesBySessionAction } from "@/features/question/question-actions"
+import { getParticipantsByAccessCode, getLeaderboardByAccessCode } from "@/features/session/session-service"
 
 export default async function SessionPage({
   params,
@@ -20,7 +21,11 @@ export default async function SessionPage({
     notFound()
   }
 
-  const slides = await getSlidesBySessionAction(session.id)
+  const [slides, participants, leaderboard] = await Promise.all([
+    getSlidesBySessionAction(session.id),
+    getParticipantsByAccessCode(session.accessCode),
+    getLeaderboardByAccessCode(session.accessCode),
+  ])
 
   return (
     <OwnerSessionContainer
@@ -32,6 +37,8 @@ export default async function SessionPage({
       initialSlideIndex={session.currentPage}
       slides={slides}
       pdfUrl={session.pdfUrl}
+      initialParticipants={participants ?? []}
+      initialLeaderboard={leaderboard ?? []}
     />
   )
 }
