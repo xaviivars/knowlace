@@ -4,6 +4,15 @@ import { useState, useTransition } from "react"
 import { submitAnswer } from "@/features/answer/answer-actions"
 import { getSocket } from "@/lib/socket"
 import { QuestionWithOptions } from "@/features/question/question.types"
+import confetti from "canvas-confetti"
+
+function triggerConfetti() {
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.6 }
+  })
+}
 
 type QuestionViewProps = {
   question: QuestionWithOptions
@@ -29,6 +38,10 @@ export function QuestionView({
   const [selected, setSelected] = useState<string | null>(null)
   const [answered, setAnswered] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [feedback, setFeedback] = useState<{
+    type: "correct" | "incorrect"
+    message: string
+  } | null>(null)
 
   function handleAnswer(optionId: string) {
     if (isOwner) return
@@ -47,10 +60,21 @@ export function QuestionView({
         setAnswered(true)
 
         if (result.correct) {
-          alert("Correcta +100 puntos")
+          triggerConfetti()
+          setFeedback({
+            type: "correct",
+            message: "🎉 ¡Correcta! +100"
+          })
         } else {
-          alert("Incorrecta")
+          setFeedback({
+            type: "incorrect",
+            message: "❌ Incorrecta"
+          })
         }
+
+        setTimeout(() => {
+          setFeedback(null)
+        }, 2500)
         
         if (remainingTime === 0) return
         
@@ -65,6 +89,21 @@ export function QuestionView({
   
   return (
     <div className="relative h-full w-full bg-[#0b162c] text-white flex items-center justify-center px-6">
+
+      {feedback && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+          <div
+            className={`rounded-2xl px-8 py-5 text-3xl font-bold shadow-2xl backdrop-blur-sm animate-bounce ${
+              feedback.type === "correct"
+                ? "border border-green-400/40 bg-green-500/20 text-green-300"
+                : "border border-red-400/40 bg-red-500/20 text-red-300"
+            }`}
+          >
+            {feedback.message}
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-4xl space-y-10">
 
         {isActive && remainingTime !== null && (
