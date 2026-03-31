@@ -2,6 +2,30 @@
 
 import SessionControls from "@/features/session/components/teacher/SessionControls"
 import OwnerSessionPresentation from "@/features/session/components/teacher/OwnerSessionPresentation"
+import { Slide } from "@/features/session/session.types"
+import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
+
+type Props = {
+  sessionId: string
+  accessCode: string
+  title: string
+  description: string | null
+  isActive: boolean
+  currentSlide: Slide | undefined
+  currentQuestion: QuestionWithOptions | null
+  slideIndex: number
+  slides: Slide[]
+  pdfUrl: string
+  countdown: number | null
+  remainingTime: number | null
+  stats: QuestionStats | null
+  currentPageNumber: number
+  totalPdfPages: number
+  onSlideChange: (index: number) => void
+  onLaunchQuestion: () => void
+  onEndQuestion: () => void
+  onRelaunchQuestion: () => void
+}
 
 export default function OwnerSessionLayout({
   sessionId,
@@ -9,19 +33,21 @@ export default function OwnerSessionLayout({
   title,
   description,
   isActive,
+  currentSlide,
+  currentQuestion,
+  slideIndex,
   slides,
   pdfUrl,
-  initialSlideIndex
-}: {
-  sessionId: string
-  accessCode: string
-  title: string
-  description: string | null
-  isActive: boolean
-  initialSlideIndex: number
-  slides: any
-  pdfUrl: string
-}) {
+  countdown,
+  remainingTime,
+  stats,
+  currentPageNumber,
+  totalPdfPages,
+  onSlideChange,
+  onLaunchQuestion,
+  onEndQuestion,
+  onRelaunchQuestion
+}: Props) {
 
   return (
     <div className="flex flex-col h-full w-full bg-[#0e1d38] text-white">
@@ -43,14 +69,22 @@ export default function OwnerSessionLayout({
 
       <div className="flex-1 overflow-hidden">
         <OwnerSessionPresentation
-          accessCode={accessCode}
-          isOwner={true}
+          currentSlide={currentSlide}
+          currentQuestion={currentQuestion}
+          slideIndex={slideIndex}
           slides={slides}
           pdfUrl={pdfUrl}
-          initialSlideIndex={initialSlideIndex}
+          countdown={countdown}
+          remainingTime={remainingTime}
+          stats={stats}
+          currentPageNumber={currentPageNumber}
+          totalPdfPages={totalPdfPages}
+          onSlideChange={onSlideChange}
+          onLaunchQuestion={onLaunchQuestion}
+          onEndQuestion={onEndQuestion}
+          onRelaunchQuestion={onRelaunchQuestion}
         />
       </div>
-
     </div>
   )
 }

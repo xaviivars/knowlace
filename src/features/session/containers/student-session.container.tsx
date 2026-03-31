@@ -26,7 +26,7 @@ type Props = {
   pdfUrl: string
 }
 
-export default function SessionContainer({
+export function StudentSessionContainer({
   sessionTitle,
   accessCode,
   initialIsActive,

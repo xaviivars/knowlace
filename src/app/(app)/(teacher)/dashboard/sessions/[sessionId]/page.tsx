@@ -11,7 +11,9 @@ export default async function SessionPage({
   const { sessionId } = await params
 
   const session = await prisma.teachingSession.findUnique({
-    where: { id: sessionId },
+    where: { 
+      id: sessionId 
+    },
   })
 
   if (!session) {
