@@ -75,8 +75,10 @@ export function OwnerSidebar({
                   <div className="flex items-center gap-3 font-medium min-w-0">
 
                     <span
-                      className={`w-2.5 h-2.5 rounded-full ${
-                        p.isActive ? "bg-green-400" : "bg-red-400"
+                      className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                        p.isActive
+                          ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.9)] scale-110"
+                          : "bg-red-400 scale-100"
                       }`}
                     />
 

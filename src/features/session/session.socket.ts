@@ -24,8 +24,17 @@ export function registerSessionSockets(io: Server, socket: Socket) {
     socket.data.role = "owner"
 
     socket.emit("slide-updated", session.currentPage)
-  })
 
+    const participants = await getParticipantsByAccessCode(accessCode)
+      if (participants) {
+        socket.emit("participants-list", participants)
+      }
+
+    const leaderboard = await getLeaderboardByAccessCode(accessCode)
+      if (leaderboard) {
+        socket.emit("leaderboard-updated", leaderboard)
+      }
+  })
 
   socket.on("viewer-join", async (accessCode: string) => {
 
@@ -81,7 +90,7 @@ export function registerSessionSockets(io: Server, socket: Socket) {
     const leaderboard = await getLeaderboardByAccessCode(accessCode)
 
     if (leaderboard) {
-      socket.emit("leaderboard-updated", leaderboard)
+      io.to(accessCode).emit("leaderboard-updated", leaderboard)
     }
 
     await syncActiveQuestion(socket, session.id)
@@ -103,6 +112,10 @@ export function registerSessionSockets(io: Server, socket: Socket) {
 
     await broadcastParticipants(io, accessCode)
 
+    const leaderboard = await getLeaderboardByAccessCode(accessCode)
+    if (leaderboard) {
+      io.to(accessCode).emit("leaderboard-updated", leaderboard)
+    }
    })
 
   socket.on("start-session", async () => {
@@ -173,6 +186,26 @@ export function registerSessionSockets(io: Server, socket: Socket) {
 
     io.to(accessCode).emit("slide-updated", newIndex)
     
+  })
+  
+  socket.on("participant-left", async (accessCode: string) => {
+    const participantId = socket.data.participantId
+
+    if (!participantId || !accessCode) return
+
+    await prisma.participant.update({
+      where: { id: participantId },
+      data: { isActive: false },
+    })
+
+    await broadcastParticipants(io, accessCode)
+
+    const leaderboard = await getLeaderboardByAccessCode(accessCode)
+    if (leaderboard) {
+      io.to(accessCode).emit("leaderboard-updated", leaderboard)
+    }
+
+    socket.leave(accessCode)
   })
 
 }
