@@ -4,9 +4,9 @@ import Link from 'next/link'
 export function HeroCTA() {
 
     return (
-        <div className="bg-[#0e1d38] w-120 h-60 rounded-3xl p-6 shadow-2xl">
+        <div className="bg-[#0e1626] w-120 h-60 rounded-3xl p-6 shadow-2xl">
 
-          <div className="mb-6">
+          <div className="text-center my-3">
             <h2 className="text-white text-4xl font-bold">
               Empieza ahora.
             </h2>
