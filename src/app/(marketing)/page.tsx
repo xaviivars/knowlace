@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 import { HeroCTA } from '@/features/landing/components/HeroCTA'
 import FeatureCard from "@/features/landing/components/FeatureCard";
@@ -11,6 +12,17 @@ export default function Home () {
   const [showJoinBar, setShowJoinBar] = useState(true)
 
   const [showScrollHint, setShowScrollHint] = useState(true)
+
+  const router = useRouter()
+  const [joinCode, setJoinCode] = useState("")
+
+  function handleJoinSession() {
+  const normalizedCode = joinCode.trim().toUpperCase()
+
+  if (!normalizedCode) return
+
+  router.push(`/session/${normalizedCode}`)
+}
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,18 +55,28 @@ export default function Home () {
             </span>
 
             <input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleJoinSession()
+                }
+              }}
               placeholder="Código"
               className="h-10 w-36 rounded-xl border-2 border-blue-200 bg-white px-4 text-sm font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500"
             />
 
-            <button className="flex h-10 items-center justify-center rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-blue-700 hover:shadow-lg">
+            <button 
+              className="flex h-10 items-center justify-center rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-blue-700 hover:shadow-lg cursor-pointer"
+              onClick={handleJoinSession}
+            >
               Unirse
             </button>
           </div>
 
           <button
             onClick={() => setShowJoinBar(false)}
-            className="absolute right-6 text-gray-700 transition hover:scale-110 hover:text-gray-900"
+            className="absolute right-6 text-gray-700 transition hover:scale-110 hover:text-gray-900 cursor-pointer"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -92,7 +114,7 @@ export default function Home () {
 
             <div className="flex flex-wrap gap-5">
 
-              <button className="rounded-2xl border-2 border-white/20 bg-white/5 px-8 py-4 text-lg font-bold text-white shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:border-white/30 hover:bg-white/10">
+              <button className="rounded-2xl border-2 border-white/20 bg-white/5 px-8 py-4 text-lg font-bold text-white shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:border-white/30 hover:bg-white/10 cursor-pointer">
                 Ver demo
               </button>
             </div>
