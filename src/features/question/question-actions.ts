@@ -24,6 +24,10 @@ import { QuestionType } from "@prisma/client"
       throw new Error("La pregunta no puede estar vacía")
     }
 
+    if (type === "SHORT_ANSWER") {
+      return
+    }
+
     if (type === "MULTIPLE_CHOICE") {
       const filledOptions = options.filter((option) => option.content.trim() !== "")
 

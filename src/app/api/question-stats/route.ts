@@ -15,7 +15,22 @@ export async function GET(req: NextRequest) {
 
   const question = await prisma.question.findUnique({ 
     where: { id: questionId }, 
+    include: {
+      options: true,
+      answers: {
+        include: {
+          participant: true,
+        },
+      },
+    },
   })
+
+  if (!question) {
+    return NextResponse.json(
+      { error: "Question not found" },
+      { status: 404 }
+    )
+  }
   
   const totalParticipants = await prisma.participant.count({
     where: {
@@ -23,33 +38,45 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  const answers = await prisma.answer.findMany({
-    where: { questionId }
-  })
+  const totalAnswers = question.answers.length
 
-  const options = await prisma.option.findMany({
-    where: { questionId }
-  })
+  if (question.type === "SHORT_ANSWER") {
+    return NextResponse.json({
+      questionId,
+      totalAnswers,
+      correctAnswers: 0,
+      percentage: 0,
+      optionCounts: {},
+      totalParticipants,
+      textAnswers: question.answers
+        .filter((answer) => answer.textResponse?.trim())
+        .map((answer) => ({
+          participantName: answer.participant.name,
+          textResponse: answer.textResponse!.trim(),
+        })),
+    })
+  }
 
   const optionCounts: Record<string, number> = {}
 
-  options.forEach(opt => {
+  question.options.forEach(opt => {
     optionCounts[opt.id] = 0
   })
 
-  answers.forEach(answer => {
+  question.answers.forEach(answer => {
+
+    if (!answer.optionId) return
+
     optionCounts[answer.optionId] =
       (optionCounts[answer.optionId] ?? 0) + 1
   })
 
-  const totalAnswers = answers.length
-
-  const correctOptions = options
+  const correctOptions = question.options
     .filter(o => o.isCorrect)
     .map(o => o.id)
 
-  const correctAnswers = answers.filter(a =>
-    correctOptions.includes(a.optionId)
+  const correctAnswers = question.answers.filter(answer =>
+    answer.optionId && correctOptions.includes(answer.optionId)
   ).length
 
   const percentage =
@@ -63,6 +90,7 @@ export async function GET(req: NextRequest) {
     correctAnswers,
     percentage,
     optionCounts,
-    totalParticipants
+    totalParticipants,
+    textAnswers: [],
   })
 }

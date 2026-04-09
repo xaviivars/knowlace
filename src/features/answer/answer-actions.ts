@@ -6,10 +6,12 @@ export async function submitAnswer({
   participantId,
   questionId,
   optionId,
+  textResponse
 }: {
   participantId: string
   questionId: string
-  optionId: string
+  optionId?: string
+  textResponse?: string
 }) {
   
   const question = await prisma.question.findUnique({
@@ -35,14 +37,6 @@ export async function submitAnswer({
     throw new Error("Participante inválido")
   }
 
-  const selectedOption = question.options.find(
-    (opt) => opt.id === optionId
-  )
-
-  if (!selectedOption) {
-    throw new Error("Opción inválida")
-  }
-
   const existing = await prisma.answer.findUnique({
     where: {
       participantId_questionId: {
@@ -54,6 +48,40 @@ export async function submitAnswer({
 
   if (existing) {
     throw new Error("Ya has respondido")
+  }
+
+  if (question.type === "SHORT_ANSWER") {
+
+    if (!textResponse?.trim()) {
+      throw new Error("La respuesta no puede estar vacía")
+    }
+
+    await prisma.answer.create({
+      data: {
+        participantId,
+        questionId,
+        textResponse: textResponse.trim(),
+      },
+    })
+
+    return {
+      success: true,
+      correct: null,
+      points: 0,
+      sessionId: question.sessionId,
+    }
+  }
+
+  if (!optionId) {
+    throw new Error("Opción inválida")
+  }
+
+  const selectedOption = question.options.find(
+    (opt) => opt.id === optionId
+  )
+
+  if (!selectedOption) {
+    throw new Error("Opción inválida")
   }
 
   await prisma.answer.create({

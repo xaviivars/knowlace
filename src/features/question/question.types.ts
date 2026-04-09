@@ -25,4 +25,8 @@ export type QuestionStats = {
   percentage: number
   optionCounts: Record<string, number>
   totalParticipants: number
+    textAnswers?: {
+    participantName: string
+    textResponse: string
+  }[]
 }

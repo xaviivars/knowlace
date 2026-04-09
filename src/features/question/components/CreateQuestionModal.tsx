@@ -5,7 +5,6 @@ import { createQuestionAction } from "@/features/question/question-actions"
 import { useRouter } from "next/navigation"
 import { SlideCarousel } from "@/features/question/components/SlideCarousel"
 import { QuestionType } from "@prisma/client"
-import { reset } from "canvas-confetti"
 
 type SlideCarouselItem = {
   id: string
@@ -68,6 +67,10 @@ export function CreateQuestionModal({
         { content: "Verdadero", isCorrect: trueFalseCorrect === "TRUE" },
         { content: "Falso", isCorrect: trueFalseCorrect === "FALSE" },
       ]
+    }
+
+    if (questionType === "SHORT_ANSWER") {
+      return []
     }
 
     return mcqOptions
@@ -148,6 +151,7 @@ export function CreateQuestionModal({
               >
                 <option value="MULTIPLE_CHOICE">Opción múltiple</option>
                 <option value="TRUE_FALSE">Verdadero / Falso</option>
+                <option value="SHORT_ANSWER">Respuesta corta</option>
               </select>
             </div>
 
