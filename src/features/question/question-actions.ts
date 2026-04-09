@@ -4,17 +4,66 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { createQuestionWithSlide } from "../session/slide-service"
+import { QuestionType } from "@prisma/client"
+
+  type CreateOptionInput = {
+    content: string
+    isCorrect: boolean
+  }
+
+  function validateQuestionInput({
+    type,
+    content,
+    options,
+  }: {
+    type: QuestionType
+    content: string
+    options: CreateOptionInput[]
+  }) {
+    if (!content.trim()) {
+      throw new Error("La pregunta no puede estar vacía")
+    }
+
+    if (type === "MULTIPLE_CHOICE") {
+      const filledOptions = options.filter((option) => option.content.trim() !== "")
+
+      if (filledOptions.length < 2) {
+        throw new Error("Debe haber al menos dos opciones")
+      }
+
+      if (!filledOptions.some((option) => option.isCorrect)) {
+        throw new Error("Debe haber una opción correcta")
+      }
+
+      return
+    }
+
+    if (type === "TRUE_FALSE") {
+      if (options.length !== 2) {
+        throw new Error("La pregunta verdadero/falso debe tener exactamente dos opciones")
+      }
+
+      const correctCount = options.filter((option) => option.isCorrect).length
+      if (correctCount !== 1) {
+        throw new Error("Debe haber exactamente una respuesta correcta")
+      }
+
+      return
+    }
+  }
 
   // ---------------- CREATE ----------------
 
   export async function createQuestionAction({
     sessionId,
     content,
+    type,
     options,
     insertAt,
   }: {
     sessionId: string
     content: string
+    type: QuestionType
     options: { content: string; isCorrect: boolean }[]
     insertAt?: number
   }) {
@@ -25,17 +74,16 @@ import { createQuestionWithSlide } from "../session/slide-service"
 
     if (!sessionAuth) throw new Error("Unauthorized")
 
-    if (!content.trim()) {
-      throw new Error("La pregunta no puede estar vacía")
-    }
-
-    if (!options.some(o => o.isCorrect)) {
-      throw new Error("Debe haber una opción correcta")
-    }
+    validateQuestionInput({
+      type,
+      content,
+      options,
+    })
 
     return createQuestionWithSlide({
       sessionId,
       content,
+      type,
       options,
       insertAt,
     })

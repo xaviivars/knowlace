@@ -4,8 +4,14 @@ export type QuestionOption = {
   isCorrect: boolean
 }
 
+export type FrontQuestionType =
+  | "MULTIPLE_CHOICE"
+  | "TRUE_FALSE"
+  | "SHORT_ANSWER"
+
 export type QuestionWithOptions = {
   id: string
+  type: FrontQuestionType
   content: string
   pageNumber: number
   options: QuestionOption[]

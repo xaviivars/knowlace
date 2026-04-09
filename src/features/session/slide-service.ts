@@ -1,13 +1,16 @@
 import { prisma } from "@/lib/prisma"
+import { QuestionType } from "@prisma/client"
 
 export async function createQuestionWithSlide({
   sessionId,
   content,
+  type,
   options,
   insertAt,
 }: {
   sessionId: string
   content: string
+  type: QuestionType
   options: { content: string; isCorrect: boolean }[]
   insertAt?: number
 }) {
@@ -16,7 +19,7 @@ export async function createQuestionWithSlide({
     data: {
       sessionId,
       content,
-      type: "MULTIPLE_CHOICE",
+      type,
       options: {
         create: options,
       },
