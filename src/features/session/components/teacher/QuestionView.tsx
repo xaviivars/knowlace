@@ -173,23 +173,31 @@ export function QuestionView({
         </div>
         
         {question.type === "SHORT_ANSWER" ? (
-          <div className="max-w-2xl mx-auto space-y-4">
-            <textarea
-              value={shortAnswer}
-              onChange={(e) => setShortAnswer(e.target.value)}
-              disabled={!isActive || answered || isOwner || isPending}
-              placeholder="Escribe tu respuesta..."
-              className="w-full min-h-35 rounded-2xl bg-white/10 border border-white/10 p-4 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-            />
+          isOwner ? (
+            <div className="max-w-2xl mx-auto">
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-10 text-center text-white/70">
+                Respuesta corta abierta
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-2xl mx-auto space-y-4">
+              <textarea
+                value={shortAnswer}
+                onChange={(e) => setShortAnswer(e.target.value)}
+                disabled={!isActive || answered || isOwner || isPending}
+                placeholder="Escribe tu respuesta..."
+                className="w-full min-h-35 rounded-2xl bg-white/10 border border-white/10 p-4 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+              />
 
-            <button
-              onClick={handleShortAnswerSubmit}
-              disabled={!isActive || answered || isOwner || isPending || !shortAnswer.trim()}
-              className="w-full p-4 rounded-2xl text-lg font-medium bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              {answered ? "Respuesta enviada" : "Enviar respuesta"}
-            </button>
-          </div>
+              <button
+                onClick={handleShortAnswerSubmit}
+                disabled={!isActive || answered || isOwner || isPending || !shortAnswer.trim()}
+                className="w-full p-4 rounded-2xl text-lg font-medium bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {answered ? "Respuesta enviada" : "Enviar respuesta"}
+              </button>
+            </div>
+          )
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {question.options.map((option) => (
@@ -202,9 +210,11 @@ export function QuestionView({
                   ${
                     selected === option.id
                       ? "bg-indigo-600"
+                      : isOwner
+                      ? "bg-white/10"
                       : "bg-white/10 hover:bg-white/20"
                   }
-                  ${answered ? "cursor-default" : ""}
+                  ${answered || isOwner ? "cursor-default" : ""}
                 `}
               >
                 {option.content}
