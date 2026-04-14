@@ -1,6 +1,6 @@
 "use client"
 
-import { QuestionView } from "@/features/session/components/teacher/QuestionView"
+import { TeacherQuestionView } from "@/features/session/components/teacher/TeacherQuestionView"
 import { QuestionWithOptions } from "@/features/question/question.types"
 
 type Props = {
@@ -25,9 +25,8 @@ export default function IdleQuestionView({
     <div className="relative h-full w-full">
 
       <div className="h-full">
-        <QuestionView
+        <TeacherQuestionView
           question={question}
-          isOwner={isOwner}
           isActive={false}
         />
       </div>

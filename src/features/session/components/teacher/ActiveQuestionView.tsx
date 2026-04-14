@@ -1,6 +1,6 @@
 "use client"
 
-import { QuestionView } from "@/features/session/components/teacher/QuestionView"
+import { TeacherQuestionView } from "@/features/session/components/teacher/TeacherQuestionView"
 import { QuestionWithOptions } from "@/features/question/question.types"
 
 type Props = {
@@ -24,9 +24,8 @@ export default function ActiveQuestionView({
 
   return (
     <>
-      <QuestionView
+      <TeacherQuestionView
         question={question}
-        isOwner={isOwner}
         remainingTime={remainingTime}
         isActive
         stats={stats}
