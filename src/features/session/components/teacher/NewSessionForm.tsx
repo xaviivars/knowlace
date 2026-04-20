@@ -3,11 +3,6 @@
 import { useState } from "react"
 import { createSession } from "@/features/session/session-actions"
 import { useRouter } from "next/navigation"
-// import { getPdfPagesFromUrl } from "@/lib/pdf/getPdfPages"
-//import * as pdfjsLib from "pdfjs-dist"
-
-//pdfjsLib.GlobalWorkerOptions.workerSrc =
-//  `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 export default function NewSessionForm() {
   const [title, setTitle] = useState("")
@@ -19,22 +14,27 @@ export default function NewSessionForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!file) {
+      alert("Debes subir un PDF")
+      return
+    }
+
     setLoading(true)
 
     try {
 
-      const pdfUrl = "/lorem_ipsum.pdf"
-
-      // const pdfPages = await getPdfPagesFromUrl(pdfUrl)
-
-      const pdfPages = 24
-
-      const session = await createSession(title, pdfPages, pdfUrl, description)
+    const session = await createSession({
+      title,
+      description,
+      file,
+    })
 
       router.push(`/dashboard/sessions/${session.id}`)
 
     } catch (error) {
       console.error(error)
+      alert("No se pudo crear la sesión")
     } finally {
       setLoading(false)
     }

@@ -1,15 +1,7 @@
-import * as pdfjsLib from "pdfjs-dist"
+import { PDFDocument } from "pdf-lib"
 
 export async function getPdfPages(file: File): Promise<number> {
-    const buffer = await file.arrayBuffer()
-    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise
-    return pdf.numPages
-  }
-
-export async function getPdfPagesFromUrl(url: string): Promise<number> {
-  const res = await fetch(url)
-  const buffer = await res.arrayBuffer()
-
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise
-  return pdf.numPages
+  const buffer = await file.arrayBuffer()
+  const pdfDoc = await PDFDocument.load(buffer)
+  return pdfDoc.getPageCount()
 }

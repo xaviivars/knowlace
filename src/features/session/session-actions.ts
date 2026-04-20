@@ -4,13 +4,18 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { generateAccessCode } from "@/lib/utils/generateAccessCode"
+import { uploadPdfToR2, getPublicR2Url } from "@/features/storage/r2-service"
+import { getPdfPages } from "@/lib/pdf/getPdfPages"
 
-// REVISAR: De momento estático
-const DEFAULT_PDF_URL = "/lorem_ipsum.pdf"
-const DEFAULT_PDF_PAGES = 24
-
-export async function createSession(title: string, pdfPages: number, pdfUrl: string, description?: string) {
-
+export async function createSession({
+  title,
+  description,
+  file,
+}: {
+  title: string
+  description?: string
+  file: File
+}) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -23,20 +28,33 @@ export async function createSession(title: string, pdfPages: number, pdfUrl: str
     throw new Error("Título requerido")
   }
 
+  if (!file) {
+    throw new Error("Debes subir un PDF")
+  }
+
+  if (file.type !== "application/pdf") {
+    throw new Error("El archivo debe ser un PDF")
+  }
+
+  const pdfPages = await getPdfPages(file)
+
   if (!pdfPages || pdfPages <= 0) {
     throw new Error("PDF inválido")
   }
-  
+
+  const { key } = await uploadPdfToR2(file, "dev")
+  const pdfUrl = getPublicR2Url(key)
+
   const accessCode = generateAccessCode()
 
   const newSession = await prisma.teachingSession.create({
     data: {
-      title,
-      description,
+      title: title.trim(),
+      description: description?.trim() || null,
       ownerId: session.user.id,
       accessCode,
-      pdfUrl: pdfUrl ?? DEFAULT_PDF_URL,
-      pdfPages: pdfPages ?? DEFAULT_PDF_PAGES,
+      pdfUrl,
+      pdfPages,
     },
   })
 
