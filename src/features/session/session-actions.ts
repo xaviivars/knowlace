@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { generateAccessCode } from "@/lib/utils/generateAccessCode"
-import { uploadPdfToR2, getPublicR2Url } from "@/features/storage/r2-service"
+import { uploadPdfToR2, getPublicR2Url, deleteObjectFromR2 } from "@/features/storage/r2-service"
 import { getPdfPages } from "@/lib/pdf/getPdfPages"
 
 export async function createSession({
@@ -43,22 +43,29 @@ export async function createSession({
   }
 
   const { key } = await uploadPdfToR2(file, "dev")
-  const pdfUrl = getPublicR2Url(key)
 
-  const accessCode = generateAccessCode()
+  try {
+    
+    const pdfUrl = getPublicR2Url(key)
+    const accessCode = generateAccessCode()
 
-  const newSession = await prisma.teachingSession.create({
-    data: {
-      title: title.trim(),
-      description: description?.trim() || null,
-      ownerId: session.user.id,
-      accessCode,
-      pdfUrl,
-      pdfPages,
-    },
-  })
+    const newSession = await prisma.teachingSession.create({
+      data: {
+        title: title.trim(),
+        description: description?.trim() || null,
+        ownerId: session.user.id,
+        accessCode,
+        pdfUrl,
+        pdfKey: key,
+        pdfPages,
+      },
+    })
 
-  return newSession
+    return newSession
+  } catch (error) {
+    await deleteObjectFromR2(key)
+    throw error
+  }
 }
 
 export async function toggleSession(sessionId: string) {
@@ -160,6 +167,32 @@ export async function leaveParticipant(participantId: string) {
   await prisma.participant.update({
     where: { id: participantId },
     data: { isActive: false },
+  })
+
+  return { success: true }
+}
+
+export async function deleteSession(sessionId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (!session) {
+    throw new Error("Unauthorized")
+  }
+
+  const existing = await prisma.teachingSession.findUnique({
+    where: { id: sessionId },
+  })
+
+  if (!existing || existing.ownerId !== session.user.id) {
+    throw new Error("Forbidden")
+  }
+
+  await deleteObjectFromR2(existing.pdfKey)
+
+  await prisma.teachingSession.delete({
+    where: { id: sessionId },
   })
 
   return { success: true }

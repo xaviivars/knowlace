@@ -56,11 +56,13 @@ export async function getQuestionStats(questionId: string) {
 
   const totalAnswers = answers.length
 
-  const correctAnswers = answers.filter(a => a.option.isCorrect).length
+  const correctAnswers = answers.filter(a => a.option?.isCorrect).length
 
   const optionCounts: Record<string, number> = {}
 
   for (const answer of answers) {
+    if (!answer.optionId) continue
+
     optionCounts[answer.optionId] =
       (optionCounts[answer.optionId] || 0) + 1
   }

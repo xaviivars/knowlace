@@ -96,6 +96,7 @@ model TeachingSession {
 
   pdfPages Int
   pdfUrl String
+  pdfKey String
   slides Slide[]
 }
 
