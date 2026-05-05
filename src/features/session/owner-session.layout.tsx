@@ -75,6 +75,7 @@ export default function OwnerSessionLayout({
       <div className="flex-1 overflow-hidden flex">
         <div className="flex-1 overflow-hidden">
           <OwnerSessionPresentation
+            sessionId={sessionId}
             currentSlide={currentSlide}
             currentQuestion={currentQuestion}
             slideIndex={slideIndex}
