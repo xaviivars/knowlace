@@ -12,7 +12,8 @@ export default function AiTestButton({ sessionId, page }: AiTestButtonProps) {
     try {
       const result = await generateQuestionsPreviewAction({
         sessionId,
-        page,
+        fromPage: Math.max(1, page - 4),
+        toPage: page,
         amount: 3,
         type: "MULTIPLE_CHOICE",
       })

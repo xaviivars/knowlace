@@ -8,8 +8,18 @@ import { extractPdfPageText } from "@/lib/pdf/extractPdfText"
 import { generateQuestionsFromText } from "@/features/ai/ai-questions-service"
 import { generateQuestionsPreviewInputSchema } from "@/features/ai/ai-question.schema"
 
+const MAX_PAGE_RANGE = 10
+const MIN_TEXT_LENGTH = 80
+
 function createTextHash(text: string) {
   return createHash("sha256").update(text).digest("hex")
+}
+
+function buildPageRange(fromPage: number, toPage: number) {
+  return Array.from(
+    { length: toPage - fromPage + 1 },
+    (_, index) => fromPage + index
+  )
 }
 
 export async function generateQuestionsPreviewAction(input: unknown) {
@@ -44,57 +54,91 @@ export async function generateQuestionsPreviewAction(input: unknown) {
     throw new Error("Forbidden")
   }
 
-  if (parsedInput.page > teachingSession.pdfPages) {
-    throw new Error("Selected page does not exist in this PDF")
+  if (parsedInput.toPage > teachingSession.pdfPages) {
+    throw new Error("Selected page range exceeds the PDF page count")
   }
 
-  const cachedPageText = await prisma.pdfPageText.findUnique({
-    where: {
-      sessionId_page: {
-        sessionId: teachingSession.id,
-        page: parsedInput.page,
-      },
-    },
-  })
+  const pageRange = buildPageRange(parsedInput.fromPage, parsedInput.toPage)
 
-  let sourceText: string
+  if (pageRange.length > MAX_PAGE_RANGE) {
+    throw new Error(`You can generate questions from a maximum of ${MAX_PAGE_RANGE} pages at once`)
+  }
+
+  const pageTexts: {
+    page: number
+    text: string
+  }[] = []
+
+  for (const page of pageRange) {
+    const cachedPageText = await prisma.pdfPageText.findUnique({
+      where: {
+        sessionId_page: {
+          sessionId: teachingSession.id,
+          page,
+        },
+      },
+    })
 
   if (
     cachedPageText &&
     cachedPageText.sourcePdfKey === teachingSession.pdfKey &&
     cachedPageText.text.trim().length > 0
   ) {
-    sourceText = cachedPageText.text
-  } else {
-    sourceText = await extractPdfPageText(
+    
+    pageTexts.push({
+        page,
+        text: cachedPageText.text,
+      })
+
+      continue
+    }
+
+    const extractedText = await extractPdfPageText(
       teachingSession.pdfUrl,
-      parsedInput.page
+      page
     )
 
-    if (!sourceText.trim()) {
-      throw new Error("No readable text found on this PDF page")
+    const normalizedText = extractedText.trim()
+
+    if (!normalizedText) {
+      continue
     }
 
     await prisma.pdfPageText.upsert({
       where: {
         sessionId_page: {
           sessionId: teachingSession.id,
-          page: parsedInput.page,
+          page,
         },
       },
       create: {
         sessionId: teachingSession.id,
-        page: parsedInput.page,
-        text: sourceText,
-        textHash: createTextHash(sourceText),
+        page,
+        text: normalizedText,
+        textHash: createTextHash(normalizedText),
         sourcePdfKey: teachingSession.pdfKey,
       },
       update: {
-        text: sourceText,
-        textHash: createTextHash(sourceText),
+        text: normalizedText,
+        textHash: createTextHash(normalizedText),
         sourcePdfKey: teachingSession.pdfKey,
       },
     })
+
+    pageTexts.push({
+      page,
+      text: normalizedText,
+    })
+  }
+
+  const sourceText = pageTexts
+    .map((pageText) => `[Page ${pageText.page}]\n${pageText.text}`)
+    .join("\n\n")
+
+  if (sourceText.trim().length < MIN_TEXT_LENGTH) {
+    throw new Error(
+      "Not enough readable text found in the selected PDF page range"
+    )
   }
 
   const questions = await generateQuestionsFromText({
@@ -104,7 +148,7 @@ export async function generateQuestionsPreviewAction(input: unknown) {
   })
 
   return {
-    sourcePage: parsedInput.page,
+    sourcePages: pageRange,
     sourceText,
     questions,
   }

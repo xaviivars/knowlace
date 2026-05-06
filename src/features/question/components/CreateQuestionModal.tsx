@@ -5,6 +5,7 @@ import { createQuestionAction } from "@/features/question/question-actions"
 import { useRouter } from "next/navigation"
 import { SlideCarousel } from "@/features/question/components/SlideCarousel"
 import { QuestionType } from "@prisma/client"
+import { generateQuestionsPreviewAction } from "@/features/ai/ai-questions-actions"
 
 type SlideCarouselItem = {
   id: string
@@ -36,6 +37,11 @@ export function CreateQuestionModal({
   const [insertAt, setInsertAt] = useState(0)
   const [questionType, setQuestionType] = useState<QuestionType>("MULTIPLE_CHOICE")
   const [trueFalseCorrect, setTrueFalseCorrect] = useState<"TRUE" | "FALSE">("TRUE")
+
+  const [aiFromPage, setAiFromPage] = useState(1)
+  const [aiToPage, setAiToPage] = useState(1)
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
 
   const [mcqOptions, setMcqOptions] = useState<CreateOptionInput[]>([
     { content: "", isCorrect: true },
@@ -81,12 +87,57 @@ export function CreateQuestionModal({
     setInsertAt(0)
     setQuestionType("MULTIPLE_CHOICE")
     setTrueFalseCorrect("TRUE")
+    setAiFromPage(1)
+    setAiToPage(1)
+    setAiError(null)
     setMcqOptions([
       { content: "", isCorrect: true },
       { content: "", isCorrect: false },
       { content: "", isCorrect: false },
       { content: "", isCorrect: false },
     ])
+  }
+
+  async function handleGenerateWithAi() {
+    if (questionType !== "MULTIPLE_CHOICE") {
+      setAiError("De momento la generación con IA solo está disponible para preguntas de opción múltiple.")
+      return
+    }
+
+    if (aiFromPage < 1 || aiToPage < aiFromPage) {
+      setAiError("Selecciona un rango de páginas válido.")
+      return
+    }
+
+    try {
+      setIsGeneratingAi(true)
+      setAiError(null)
+
+      const result = await generateQuestionsPreviewAction({
+        sessionId,
+        fromPage: aiFromPage,
+        toPage: aiToPage,
+        amount: 1,
+        type: "MULTIPLE_CHOICE",
+      })
+
+      console.log("AI source pages:", result.sourcePages)
+      console.log("AI source text:", result.sourceText)
+
+      const generatedQuestion = result.questions[0]
+
+      if (!generatedQuestion) {
+        throw new Error("No se ha generado ninguna pregunta.")
+      }
+
+      setQuestionType(generatedQuestion.type)
+      setContent(generatedQuestion.content)
+      setMcqOptions(generatedQuestion.options)
+    } catch (err: any) {
+      setAiError(err.message || "Error al generar la pregunta con IA.")
+    } finally {
+      setIsGeneratingAi(false)
+    }
   }
 
   function handleSubmit() {
@@ -102,7 +153,7 @@ export function CreateQuestionModal({
           content,
           type: questionType,
           options: finalOptions,
-          insertAt
+          insertAt: insertAt + 1
         })
         
         setIsOpen(false)
@@ -138,8 +189,81 @@ export function CreateQuestionModal({
               <SlideCarousel
                 slides={slides}
                 selectedIndex={insertAt}
-                onSelect={setInsertAt}
+                onSelect={(index) => {
+                  setInsertAt(index)
+
+                  const selectedSlide = slides[index]
+
+                  if (selectedSlide?.type === "PDF" && selectedSlide.page) {
+                    setAiToPage(selectedSlide.page)
+                    setAiFromPage(Math.max(1, selectedSlide.page - 4))
+                  }
+                }}
               />
+            </div>
+
+            <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 space-y-4">
+              <div>
+                <h3 className="font-semibold text-indigo-200">
+                  Generación con IA
+                </h3>
+                <p className="text-sm text-zinc-400">
+                  Selecciona el rango de páginas del PDF que se usará como contexto para generar una pregunta.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm text-zinc-400">
+                    Desde página
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={aiFromPage}
+                    onChange={(e) => setAiFromPage(Number(e.target.value))}
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm text-zinc-400">
+                    Hasta página
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={aiToPage}
+                    onChange={(e) => setAiToPage(Number(e.target.value))}
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {aiError && (
+                <p className="text-sm text-red-400">
+                  {aiError}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleGenerateWithAi}
+                disabled={isGeneratingAi || questionType !== "MULTIPLE_CHOICE"}
+                className="rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGeneratingAi
+                  ? "Generando..."
+                  : content.trim()
+                    ? "Regenerar con IA"
+                    : "Generar con IA"}
+              </button>
+
+              {questionType !== "MULTIPLE_CHOICE" && (
+                <p className="text-xs text-zinc-500">
+                  Por ahora la IA solo genera preguntas de opción múltiple.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
