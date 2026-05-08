@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { SlideCarousel } from "@/features/question/components/SlideCarousel"
 import { QuestionType } from "@prisma/client"
 import { generateQuestionsPreviewAction } from "@/features/ai/ai-questions-actions"
+import { Spinner } from "@/components/ui/Spinner"
 
 type SlideCarouselItem = {
   id: string
@@ -42,6 +43,7 @@ export function CreateQuestionModal({
   const [aiToPage, setAiToPage] = useState(1)
   const [isGeneratingAi, setIsGeneratingAi] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
+  const [aiSuccess, setAiSuccess] = useState<string | null>(null)
 
   const [mcqOptions, setMcqOptions] = useState<CreateOptionInput[]>([
     { content: "", isCorrect: true },
@@ -49,6 +51,21 @@ export function CreateQuestionModal({
     { content: "", isCorrect: false },
     { content: "", isCorrect: false },
   ])
+  
+  const MAX_AI_PAGE_RANGE = 10
+
+  const aiPageRangeLength = aiToPage - aiFromPage + 1
+
+  const isAiRangeValid =
+    aiFromPage >= 1 &&
+    aiToPage >= aiFromPage &&
+    aiPageRangeLength <= MAX_AI_PAGE_RANGE
+
+  const aiRangeHelperText = isAiRangeValid
+    ? `Se usará el contenido de las páginas ${aiFromPage} a ${aiToPage}. Máximo ${MAX_AI_PAGE_RANGE} páginas por generación.`
+    : aiToPage < aiFromPage
+      ? "La página final no puede ser menor que la página inicial."
+      : `Solo puedes usar un máximo de ${MAX_AI_PAGE_RANGE} páginas por generación.`
 
   function updateMcqOption(index: number, value: string) {
     setMcqOptions((prev) =>
@@ -67,7 +84,7 @@ export function CreateQuestionModal({
     )
   }
 
-    function buildOptions(): CreateOptionInput[] {
+  function buildOptions(): CreateOptionInput[] {
     if (questionType === "TRUE_FALSE") {
       return [
         { content: "Verdadero", isCorrect: trueFalseCorrect === "TRUE" },
@@ -90,6 +107,7 @@ export function CreateQuestionModal({
     setAiFromPage(1)
     setAiToPage(1)
     setAiError(null)
+    setAiSuccess(null)
     setMcqOptions([
       { content: "", isCorrect: true },
       { content: "", isCorrect: false },
@@ -98,13 +116,48 @@ export function CreateQuestionModal({
     ])
   }
 
+  function handleAiFromPageChange(value: number) {
+    const nextFromPage = Math.max(1, value || 1)
+
+    setAiFromPage(nextFromPage)
+    setAiSuccess(null)
+    setAiError(null)
+
+    if (aiToPage < nextFromPage) {
+      setAiToPage(nextFromPage)
+    }
+
+    if (aiToPage - nextFromPage + 1 > MAX_AI_PAGE_RANGE) {
+      setAiToPage(nextFromPage + MAX_AI_PAGE_RANGE - 1)
+    }
+  }
+
+  function handleAiToPageChange(value: number) {
+    const nextToPage = Math.max(1, value || 1)
+
+    setAiSuccess(null)
+    setAiError(null)
+
+    if (nextToPage < aiFromPage) {
+      setAiToPage(aiFromPage)
+      return
+    }
+
+    if (nextToPage - aiFromPage + 1 > MAX_AI_PAGE_RANGE) {
+      setAiToPage(aiFromPage + MAX_AI_PAGE_RANGE - 1)
+      return
+    }
+
+    setAiToPage(nextToPage)
+  }
+
   async function handleGenerateWithAi() {
     if (questionType !== "MULTIPLE_CHOICE") {
       setAiError("De momento la generación con IA solo está disponible para preguntas de opción múltiple.")
       return
     }
 
-    if (aiFromPage < 1 || aiToPage < aiFromPage) {
+    if (!isAiRangeValid) {
       setAiError("Selecciona un rango de páginas válido.")
       return
     }
@@ -112,6 +165,7 @@ export function CreateQuestionModal({
     try {
       setIsGeneratingAi(true)
       setAiError(null)
+      setAiSuccess(null)
 
       const result = await generateQuestionsPreviewAction({
         sessionId,
@@ -120,9 +174,6 @@ export function CreateQuestionModal({
         amount: 1,
         type: "MULTIPLE_CHOICE",
       })
-
-      console.log("AI source pages:", result.sourcePages)
-      console.log("AI source text:", result.sourceText)
 
       const generatedQuestion = result.questions[0]
 
@@ -133,6 +184,11 @@ export function CreateQuestionModal({
       setQuestionType(generatedQuestion.type)
       setContent(generatedQuestion.content)
       setMcqOptions(generatedQuestion.options)
+
+      setAiSuccess(
+        `Pregunta generada a partir de las páginas ${aiFromPage}-${aiToPage}. Puedes revisarla y editarla antes de guardar.`
+      )
+
     } catch (err: any) {
       setAiError(err.message || "Error al generar la pregunta con IA.")
     } finally {
@@ -176,21 +232,28 @@ export function CreateQuestionModal({
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="w-full max-w-2xl rounded-2xl bg-zinc-900 text-white p-8 space-y-6 shadow-2xl border border-zinc-700">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-zinc-900 text-white p-8 space-y-6 shadow-2xl border border-zinc-700 [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_rgb(39_39_42)] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-500">
 
-            <h2 className="text-2xl font-bold">
-              Nueva pregunta
-            </h2>
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold">
+                Nueva pregunta
+              </h2>
+              <p className="text-sm text-zinc-400">
+                Crea una pregunta manualmente o genera una propuesta con IA a partir del PDF.
+              </p>
+            </div>
 
             <div className="space-y-2">
               <label className="text-sm text-zinc-400">
-                Posición (slide)
+                Insertar después de
               </label>
               <SlideCarousel
                 slides={slides}
                 selectedIndex={insertAt}
                 onSelect={(index) => {
                   setInsertAt(index)
+                  setAiError(null)
+                  setAiSuccess(null)
 
                   const selectedSlide = slides[index]
 
@@ -202,14 +265,20 @@ export function CreateQuestionModal({
               />
             </div>
 
-            <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 space-y-4">
-              <div>
-                <h3 className="font-semibold text-indigo-200">
-                  Generación con IA
-                </h3>
-                <p className="text-sm text-zinc-400">
-                  Selecciona el rango de páginas del PDF que se usará como contexto para generar una pregunta.
-                </p>
+            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold text-indigo-200">
+                    Generación con IA
+                  </h3>
+                  <p className="text-sm text-zinc-400">
+                    Genera una propuesta de pregunta usando el contenido de un rango de páginas del PDF.
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-indigo-500/20 px-3 py-1 text-xs text-indigo-200">
+                  Beta
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -221,7 +290,7 @@ export function CreateQuestionModal({
                     type="number"
                     min={1}
                     value={aiFromPage}
-                    onChange={(e) => setAiFromPage(Number(e.target.value))}
+                    onChange={(e) => handleAiFromPageChange(Number(e.target.value))}
                     className="w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -232,28 +301,49 @@ export function CreateQuestionModal({
                   </label>
                   <input
                     type="number"
-                    min={1}
+                    min={aiFromPage}
                     value={aiToPage}
-                    onChange={(e) => setAiToPage(Number(e.target.value))}
+                    onChange={(e) => handleAiToPageChange(Number(e.target.value))}
                     className="w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
+              <p className={`text-xs ${isAiRangeValid ? "text-zinc-500" : "text-amber-300"}`}>
+                {aiRangeHelperText}
+              </p>
+
+              {isGeneratingAi && (
+                <div className="flex items-center gap-2 rounded-xl border border-indigo-400/30 bg-indigo-400/10 p-3 text-sm text-indigo-100">
+                  <Spinner />
+                  <span>
+                    Generando una propuesta con IA...
+                  </span>
+                </div>
+              )}
+
               {aiError && (
-                <p className="text-sm text-red-400">
+                <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
                   {aiError}
+                </p>
+              )}
+
+              {aiSuccess && (
+                <p className="rounded-xl border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-300">
+                  {aiSuccess}
                 </p>
               )}
 
               <button
                 type="button"
                 onClick={handleGenerateWithAi}
-                disabled={isGeneratingAi || questionType !== "MULTIPLE_CHOICE"}
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isGeneratingAi || questionType !== "MULTIPLE_CHOICE" || !isAiRangeValid}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                {isGeneratingAi && <Spinner />}
+
                 {isGeneratingAi
-                  ? "Generando..."
+                  ? "Generando pregunta..."
                   : content.trim()
                     ? "Regenerar con IA"
                     : "Generar con IA"}
@@ -283,7 +373,10 @@ export function CreateQuestionModal({
               className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Escribe la pregunta..."
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e) => {
+                setContent(e.target.value)
+                setAiSuccess(null)
+              }}
             />
 
             {questionType === "MULTIPLE_CHOICE" && (
@@ -301,9 +394,10 @@ export function CreateQuestionModal({
                       className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder={`Opción ${index + 1}`}
                       value={option.content}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         updateMcqOption(index, e.target.value)
-                      }
+                        setAiSuccess(null)
+                      }}
                     />
                   </div>
                 ))}
@@ -351,7 +445,7 @@ export function CreateQuestionModal({
 
               <button
                 onClick={handleSubmit}
-                disabled={isPending}
+                disabled={isPending || isGeneratingAi }
                 className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition disabled:opacity-50"
               >
                 {isPending ? "Guardando..." : "Guardar"}

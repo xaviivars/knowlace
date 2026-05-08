@@ -7,7 +7,6 @@ import ResultsQuestionView from "@/features/session/components/teacher/ResultsQu
 import CountdownOverlay from "@/features/session/components/CountdownOverlay"
 import { Slide } from "@/features/session/session.types"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
-import AiTestButton from "@/features/session/components/teacher/AITestButton"
 
 const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), { ssr: false })
 
@@ -139,13 +138,6 @@ export default function OwnerSessionPresentation({
         >
           →
         </button>
-
-        {currentSlide?.type === "PDF" && currentSlide.page && (
-          <AiTestButton
-            sessionId={sessionId}
-            page={currentSlide.page}
-          />
-        )}
 
       </div>
 
