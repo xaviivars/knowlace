@@ -5,7 +5,7 @@ export const generateQuestionsPreviewInputSchema = z.object({
   fromPage: z.number().int().min(1),
   toPage: z.number().int().min(1),
   amount: z.number().int().min(1).max(5),
-  type: z.enum(["MULTIPLE_CHOICE"]),
+  type: z.enum(["MULTIPLE_CHOICE", "TRUE_FALSE", "SHORT_ANSWER"]),
   })
   .refine((data) => data.toPage >= data.fromPage, {
     message: "The end page must be greater than or equal to the start page",
@@ -18,9 +18,9 @@ export const generatedQuestionOptionSchema = z.object({
 })
 
 export const generatedQuestionSchema = z.object({
-  type: z.enum(["MULTIPLE_CHOICE"]),
+  type: z.enum(["MULTIPLE_CHOICE", "TRUE_FALSE", "SHORT_ANSWER"]),
   content: z.string().min(1),
-  options: z.array(generatedQuestionOptionSchema).min(2).max(6),
+  options: z.array(generatedQuestionOptionSchema),
   explanation: z.string().optional(),
 })
 

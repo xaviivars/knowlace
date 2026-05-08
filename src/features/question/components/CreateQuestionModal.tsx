@@ -152,10 +152,6 @@ export function CreateQuestionModal({
   }
 
   async function handleGenerateWithAi() {
-    if (questionType !== "MULTIPLE_CHOICE") {
-      setAiError("De momento la generación con IA solo está disponible para preguntas de opción múltiple.")
-      return
-    }
 
     if (!isAiRangeValid) {
       setAiError("Selecciona un rango de páginas válido.")
@@ -172,7 +168,7 @@ export function CreateQuestionModal({
         fromPage: aiFromPage,
         toPage: aiToPage,
         amount: 1,
-        type: "MULTIPLE_CHOICE",
+        type: questionType
       })
 
       const generatedQuestion = result.questions[0]
@@ -183,7 +179,31 @@ export function CreateQuestionModal({
 
       setQuestionType(generatedQuestion.type)
       setContent(generatedQuestion.content)
-      setMcqOptions(generatedQuestion.options)
+
+      if (generatedQuestion.type === "MULTIPLE_CHOICE") {  
+        setMcqOptions(generatedQuestion.options)
+      }
+
+      if (generatedQuestion.type === "TRUE_FALSE") {
+        const correctOption = generatedQuestion.options.find((option) => option.isCorrect)
+        const normalizedCorrectContent = correctOption?.content.toLowerCase() ?? ""
+
+        setTrueFalseCorrect(
+          normalizedCorrectContent.includes("verdadero") ||
+          normalizedCorrectContent.includes("true")
+            ? "TRUE"
+            : "FALSE"
+        )
+      }
+
+      if (generatedQuestion.type === "SHORT_ANSWER") {
+        setMcqOptions([
+          { content: "", isCorrect: true },
+          { content: "", isCorrect: false },
+          { content: "", isCorrect: false },
+          { content: "", isCorrect: false },
+        ])
+      }
 
       setAiSuccess(
         `Pregunta generada a partir de las páginas ${aiFromPage}-${aiToPage}. Puedes revisarla y editarla antes de guardar.`
@@ -302,6 +322,7 @@ export function CreateQuestionModal({
                   <input
                     type="number"
                     min={aiFromPage}
+                    max={aiFromPage + MAX_AI_PAGE_RANGE - 1}
                     value={aiToPage}
                     onChange={(e) => handleAiToPageChange(Number(e.target.value))}
                     className="w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -337,7 +358,7 @@ export function CreateQuestionModal({
               <button
                 type="button"
                 onClick={handleGenerateWithAi}
-                disabled={isGeneratingAi || questionType !== "MULTIPLE_CHOICE" || !isAiRangeValid}
+                disabled={isGeneratingAi || !isAiRangeValid}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGeneratingAi && <Spinner />}
@@ -349,11 +370,6 @@ export function CreateQuestionModal({
                     : "Generar con IA"}
               </button>
 
-              {questionType !== "MULTIPLE_CHOICE" && (
-                <p className="text-xs text-zinc-500">
-                  Por ahora la IA solo genera preguntas de opción múltiple.
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -446,7 +462,7 @@ export function CreateQuestionModal({
               <button
                 onClick={handleSubmit}
                 disabled={isPending || isGeneratingAi }
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPending ? "Guardando..." : "Guardar"}
               </button>
