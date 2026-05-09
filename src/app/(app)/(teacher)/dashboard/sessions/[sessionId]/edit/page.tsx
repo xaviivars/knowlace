@@ -54,82 +54,83 @@ export default async function SessionEditorPage({
         : null,
   }))
 
-  console.log(carouselSlides)
-
   return (
-    <div className="max-w-3xl mx-auto py-10 space-y-8">
 
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">{session.title}</h1>
-          <p className="text-gray-500">{session.description}</p>
+    <div className="flex h-full min-h-0 flex-col px-6 py-8">
+      <div className="mx-auto flex w-full max-w-4xl flex-1 min-h-0 flex-col space-y-6">
+
+        <div className="flex shrink-0 items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">{session.title}</h1>
+            <p className="text-gray-500">{session.description}</p>
+          </div>
+
+          <Link
+            href={`/dashboard/sessions/${sessionId}`}
+            className="px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-500"
+          >
+            Volver a sesión
+          </Link>
         </div>
 
-        <Link
-          href={`/dashboard/sessions/${sessionId}`}
-          className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-300"
-        >
-          Volver a sesión
-        </Link>
-      </div>
+        <div className="flex shrink-0 justify-end">
+            <CreateQuestionModal sessionId={session.id} slides={carouselSlides} />
+        </div>
 
-    <div className="flex justify-end">
-        <CreateQuestionModal sessionId={session.id} slides={carouselSlides} />
-    </div>
+        <div className="min-h-0 flex-1 overflow-y-auto pr-2 space-y-6 [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-500">
+          {session.slides.length === 0 ? (
+            <p className="text-gray-500">No hay contenido todavía.</p>
+          ) : (
+            session.slides.map((slide, index) => {
 
-      <div className="space-y-6">
-        {session.slides.length === 0 ? (
-          <p className="text-gray-500">No hay contenido todavía.</p>
-        ) : (
-          session.slides.map((slide, index) => {
+              if (slide.type === "PDF") {
+                return (
+                  <div key={slide.id} className="rounded-xl border border-zinc-700 bg-zinc-800/70 p-5 text-zinc-300">
+                    Página PDF {slide.page}
+                  </div>
+                )
+              }
 
-            if (slide.type === "PDF") {
+              if (!slide.question) return null
+
+              const question = slide.question
+
               return (
-                <div key={slide.id} className="border rounded-xl p-5 bg-gray-100">
-                  Página PDF {slide.page}
+                <div
+                  key={question.id}
+                  className="rounded-xl border border-zinc-700 bg-zinc-900 p-5 space-y-4 shadow-sm text-zinc-100"
+                >
+                  <h2 className="font-semibold">
+                    Pregunta (posición {slide.order})
+                  </h2>
+
+                  <p>{question.content}</p>
+
+                  <ul className="space-y-1">
+                    {question.options.map((option) => (
+                      <li
+                        key={option.id}
+                        className={
+                          option.isCorrect
+                            ? "font-medium text-green-600"
+                            : ""
+                        }
+                      >
+                        • {option.content}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <form action={deleteQuestionWithSlide.bind(null, question.id)}>
+                    <button className="text-red-500 hover:underline">
+                      Eliminar pregunta
+                    </button>
+                  </form>
                 </div>
               )
-            }
-
-            if (!slide.question) return null
-
-            const question = slide.question
-
-            return (
-              <div
-                key={question.id}
-                className="border rounded-xl p-5 space-y-4"
-              >
-                <h2 className="font-semibold">
-                  Pregunta (posición {slide.order})
-                </h2>
-
-                <p>{question.content}</p>
-
-                <ul className="space-y-1">
-                  {question.options.map((option) => (
-                    <li
-                      key={option.id}
-                      className={
-                        option.isCorrect
-                          ? "font-medium text-green-600"
-                          : ""
-                      }
-                    >
-                      • {option.content}
-                    </li>
-                  ))}
-                </ul>
-
-                <form action={deleteQuestionWithSlide.bind(null, question.id)}>
-                  <button className="text-red-500 hover:underline">
-                    Eliminar pregunta
-                  </button>
-                </form>
-              </div>
-            )
-          })
-        )}
+            })
+          )}
+        </div>
       </div>
     </div>
   )}

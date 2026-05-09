@@ -26,7 +26,7 @@ export default function PdfViewer({
 
   return (
 
-      <div className="flex h-full w-full justify-center overflow-auto bg-[#0b162c]">
+      <div className="flex h-full w-full items-center justify-center overflow-auto bg-[#0b162c]">
         <Document
           file={pdfUrl}
           onLoadSuccess={onDocumentLoadSuccess}
