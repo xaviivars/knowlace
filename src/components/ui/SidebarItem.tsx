@@ -14,10 +14,13 @@ export function SidebarItem({
   icon: Icon,
   children,
 }: SidebarItemProps) {
+
   const pathname = usePathname()
+  
   const isActive =
-  pathname === href ||
-  pathname.startsWith(href + "/")
+    href === "/dashboard"
+      ? pathname === "/dashboard"
+      : pathname === href || pathname.startsWith(`${href}/`)
 
   return (
     <Link

@@ -13,9 +13,12 @@ export default function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-[#0e1d38] text-white">
       
       <aside className="w-72 shrink-0 border-r border-white/10 bg-[#0b1628] px-5 py-6 flex flex-col">
-        <h2 className="text-4xl font-bold mb-12">Knowlace.</h2>
 
-        <nav className="flex flex-col gap-4">
+        <div className="border-b border-white/10 pb-6">
+          <h2 className="text-4xl font-bold tracking-tight">Knowlace.</h2>
+        </div>
+
+        <nav className="flex flex-col gap-4 mt-6">
             <SidebarItem href="/dashboard/sessions/new" icon={SquaresPlusIcon}>
                 Crear una sesión
             </SidebarItem>
@@ -24,7 +27,7 @@ export default function DashboardLayout({
                 Buscar una sesión
             </SidebarItem>
 
-            <SidebarItem href="/dashboard" icon={Cog8ToothIcon}>
+            <SidebarItem href="/dashboard/working" icon={Cog8ToothIcon}>
                 Ajustes
             </SidebarItem>
         </nav>

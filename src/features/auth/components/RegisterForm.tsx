@@ -48,7 +48,7 @@ export function RegisterForm ({
             className={`
                 bg-[#0f1b2d]
                 w-120
-                h-170
+                h-190
                 rounded-3xl
                 p-8
                 shadow-2xl
@@ -64,13 +64,15 @@ export function RegisterForm ({
                 </p>
             </div>    
 
-            {error && (
-                <div className="mt-4 text-sm text-red-400">
-                {error}
-                </div>
-            )}
-
-            <div className="flex flex-col items-center gap-5 my-4">
+            <div className="mt-3 min-h-10">
+                {error && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
+                    {error}
+                    </div>
+                )}
+            </div>
+                
+            <div className="flex flex-col items-center gap-5 mt-3 mb-5">
                 <Input
                     label="Nombre"
                     type="text"

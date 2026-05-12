@@ -47,7 +47,7 @@ export function LoginForm ({
             className={`
                 bg-[#0f1b2d]
                 w-120
-                h-150
+                h-160
                 rounded-3xl
                 p-8
                 shadow-2xl
@@ -63,17 +63,20 @@ export function LoginForm ({
                     </p>
                 </div>
 
-                {error && (
-                    <div className="mt-4 text-sm text-red-400">
-                    {error}
-                    </div>
-                )}
+                <div className="mt-3 min-h-10">
+                    {error && (
+                        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
+                            {error}
+                        </div>
+                    )}
+                </div>
 
-                <div className="flex flex-col items-center gap-6 my-6">
+                <div className="flex flex-col items-center gap-5 mt-3 mb-6">
                     <Input
                         label="Correo electrónico"
                         type="email"
                         placeholder="profesor@centro.com"
+                        required
                         value={email}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             setEmail(e.target.value)
@@ -84,6 +87,7 @@ export function LoginForm ({
                         label="Contraseña"
                         type="password"
                         placeholder="••••••••"
+                        required
                         value={password}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             setPassword(e.target.value)
@@ -93,7 +97,7 @@ export function LoginForm ({
                     <Button 
                         type="submit"
                         disabled={isLoading}
-                        className="w-80 h-12"
+                        className="w-80 h-12 mt-4"
                     >
                         {isLoading ? "Iniciando..." : "Iniciar sesión"}
                     </Button>
