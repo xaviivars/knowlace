@@ -11,11 +11,15 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 type PdfViewerProps = {
   pdfUrl: string
   pageNumber: number
+  scale?: number
 }
+
+const BASE_WIDTH = 1000;
 
 export default function PdfViewer({
   pdfUrl,
   pageNumber,
+  scale = 1,
 }: PdfViewerProps) {
 
   const [numPages, setNumPages] = useState<number | null>(null)
@@ -34,7 +38,7 @@ export default function PdfViewer({
         >
           <Page
             pageNumber={pageNumber}
-            width={1000}
+            width={BASE_WIDTH * scale}
             renderTextLayer={false}
             renderAnnotationLayer={false}
           />

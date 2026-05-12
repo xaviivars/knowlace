@@ -7,6 +7,9 @@ import ResultsQuestionView from "@/features/session/components/teacher/ResultsQu
 import CountdownOverlay from "@/features/session/components/CountdownOverlay"
 import { Slide } from "@/features/session/session.types"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
+import PresentationToolbar from "@/features/session/components/PresentationToolbar"
+import PdfZoomControls from "@/features/session/components/PdfZoomControls"
+import { usePdfZoom } from "@/features/session/hooks/usePdfZoom"
 
 const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), { ssr: false })
 
@@ -46,6 +49,16 @@ export default function OwnerSessionPresentation({
   onRelaunchQuestion
 }: Props) {
 
+  const {
+    scale,
+    zoomPercentage,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    canZoomIn,
+    canZoomOut,
+  } = usePdfZoom()
+
   function renderContent() {
 
     if (!currentSlide) return null
@@ -55,6 +68,7 @@ export default function OwnerSessionPresentation({
         <PdfViewer
           pdfUrl={pdfUrl}
           pageNumber={currentSlide.page}
+          scale={scale}
         />
       )
     }
@@ -115,31 +129,23 @@ export default function OwnerSessionPresentation({
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col ">
+    <div className="flex h-full w-full flex-col ">
 
-        <div className="absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-4 rounded-xl border border-white/15 bg-black/65 px-4 py-2 text-white shadow-lg backdrop-blur-sm">
-
-        <button
-          onClick={() => onSlideChange(slideIndex - 1)}
-          disabled={slideIndex === 0}
-          className="rounded-md bg-white/15 px-3 py-1 text-sm font-medium transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          ←
-        </button>
-
-        <span className="min-w-35 text-center text-sm font-medium">
-          Página {currentPageNumber} de {totalPdfPages}
-        </span>
-
-        <button
-          onClick={() => onSlideChange(slideIndex + 1)}
-          disabled={slideIndex >= slides.length - 1}
-          className="rounded-md bg-white/15 px-3 py-1 text-sm font-medium transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          →
-        </button>
-
-      </div>
+      <PresentationToolbar
+        currentPageNumber={currentPageNumber}
+        totalPdfPages={totalPdfPages}
+        canGoPrevious={slideIndex > 0}
+        canGoNext={slideIndex < slides.length - 1}
+        onPrevious={() => onSlideChange(slideIndex - 1)}
+        onNext={() => onSlideChange(slideIndex + 1)}
+        showZoomControls={currentSlide?.type === "PDF"}
+        zoomPercentage={zoomPercentage}
+        canZoomIn={canZoomIn}
+        canZoomOut={canZoomOut}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onResetZoom={resetZoom}
+      />
 
       {renderContent()}
       
