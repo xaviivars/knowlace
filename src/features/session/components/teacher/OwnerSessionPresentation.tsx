@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import IdleQuestionView from "@/features/session/components/teacher/IdleQuestionView"
 import ActiveQuestionView from "@/features/session/components/teacher/ActiveQuestionView"
@@ -8,8 +9,8 @@ import CountdownOverlay from "@/features/session/components/CountdownOverlay"
 import { Slide } from "@/features/session/session.types"
 import { QuestionWithOptions, QuestionStats } from "@/features/question/question.types"
 import PresentationToolbar from "@/features/session/components/PresentationToolbar"
-import PdfZoomControls from "@/features/session/components/PdfZoomControls"
 import { usePdfZoom } from "@/features/session/hooks/usePdfZoom"
+import { useFullscreen } from "@/features/session/hooks/useFullscreen"
 
 const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), { ssr: false })
 
@@ -58,6 +59,23 @@ export default function OwnerSessionPresentation({
     canZoomIn,
     canZoomOut,
   } = usePdfZoom()
+
+  const presentationRef = useRef<HTMLDivElement>(null)
+
+  const {
+    isFullscreen,
+    toggleFullscreen,
+  } = useFullscreen<HTMLDivElement>()
+
+  const wasFullscreen = useRef(isFullscreen)
+
+  useEffect(() => {
+    if (wasFullscreen.current !== isFullscreen) {
+      resetZoom()
+    }
+
+    wasFullscreen.current = isFullscreen
+  }, [isFullscreen, resetZoom])
 
   function renderContent() {
 
@@ -129,8 +147,10 @@ export default function OwnerSessionPresentation({
   }
 
   return (
-    <div className="flex h-full w-full flex-col ">
-
+    <div
+      ref={presentationRef}
+      className="flex h-full w-full flex-col bg-[#0b162c]"
+    >
       <PresentationToolbar
         currentPageNumber={currentPageNumber}
         totalPdfPages={totalPdfPages}
@@ -145,9 +165,13 @@ export default function OwnerSessionPresentation({
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onResetZoom={resetZoom}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={() => toggleFullscreen(presentationRef.current)}
       />
 
-      {renderContent()}
+      <div className="min-h-0 flex-1">
+        {renderContent()}
+      </div>
       
     </div>
   )

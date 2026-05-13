@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 
 const MIN_SCALE = 0.7
 const MAX_SCALE = 1.8
@@ -21,9 +21,9 @@ export function usePdfZoom() {
     )
   }
 
-  function resetZoom() {
+  const resetZoom = useCallback(() => {
     setScale(1)
-  }
+  }, [])
 
   return {
     scale,
