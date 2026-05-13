@@ -9,6 +9,7 @@ import {
   Legend
 } from "chart.js"
 import { Bar } from "react-chartjs-2"
+import { ResultStatCard } from "@/features/question/components/ResultStatCard"
 
 ChartJS.register(
   BarElement,
@@ -145,10 +146,36 @@ export default function QuestionResultsView({
         />
       </div>
 
-      <div className="text-center space-y-2">
-        <p>Total respuestas: {stats.totalAnswers}</p>
-        <p>Aciertos: {stats.correctAnswers}</p>
-        <p>% aciertos: {stats.percentage}%</p>
+      <div className="grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
+        <ResultStatCard
+          label="Respuestas"
+          value={
+            typeof stats.totalParticipants === "number"
+              ? `${stats.totalAnswers}/${stats.totalParticipants}`
+              : stats.totalAnswers
+          }
+          helper="Participación"
+        />
+
+        <ResultStatCard
+          label="Aciertos"
+          value={stats.correctAnswers}
+          helper="Respuestas correctas"
+          variant={stats.correctAnswers > 0 ? "success" : "default"}
+        />
+
+        <ResultStatCard
+          label="Precisión"
+          value={`${stats.percentage}%`}
+          helper="Porcentaje de acierto"
+          variant={
+            stats.percentage >= 70
+              ? "success"
+              : stats.percentage >= 40
+                ? "warning"
+                : "danger"
+          }
+        />
       </div>
 
       {onRelaunch && (

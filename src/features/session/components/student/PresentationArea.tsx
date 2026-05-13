@@ -6,10 +6,11 @@ import StudentQuestionView from "@/features/session/components/student/StudentQu
 import StudentResultsView from "@/features/session/components/student/StudentResultsView"
 import StudentPdfView from "@/features/session/components/student/StudentPdfView"
 import { QuestionStats } from "@/features/question/question.types"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import CountdownOverlay from "../CountdownOverlay"
 import PresentationToolbar from "@/features/session/components/PresentationToolbar"
 import { usePdfZoom } from "@/features/session/hooks/usePdfZoom"
+import { useFullscreen } from "@/features/session/hooks/useFullscreen"
 
 type Props = {
   joined: boolean
@@ -112,9 +113,29 @@ export default function PresentationArea({
     canZoomOut,
   } = usePdfZoom()
 
+  const presentationRef = useRef<HTMLDivElement>(null)
+
+  const {
+    isFullscreen,
+    toggleFullscreen,
+  } = useFullscreen<HTMLDivElement>()
+
+  const wasFullscreen = useRef(isFullscreen)
+
+  useEffect(() => {
+    if (wasFullscreen.current !== isFullscreen) {
+      resetZoom()
+    }
+
+    wasFullscreen.current = isFullscreen
+  }, [isFullscreen, resetZoom])
+
   return (
     
-    <div className="relative flex flex-col flex-1 bg-[#0b162c]">
+    <div
+      ref={presentationRef}
+      className="relative flex flex-col flex-1 bg-[#0b162c]"
+    >
 
       {/* No unido */}
 
@@ -151,6 +172,8 @@ export default function PresentationArea({
             onZoomIn={zoomIn}
             onZoomOut={zoomOut}
             onResetZoom={resetZoom}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={() => toggleFullscreen(presentationRef.current)}
           />
 
           {/* PDF */}
