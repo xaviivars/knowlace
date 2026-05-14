@@ -46,7 +46,7 @@ export default function PresentationArea({
   onJoin,
 
   accessCode,
-  
+
   slides,
   slideIndex,
   onSlideChange,
@@ -57,51 +57,14 @@ export default function PresentationArea({
 
   stats,
   refetchStats,
-  pdfUrl
+  pdfUrl,
 }: Props) {
-
   const currentSlide = slides[slideIndex]
 
   const currentQuestion =
     currentSlide?.type === "QUESTION"
       ? currentSlide.question
       : null
-
-  useEffect(() => {
-
-    if (
-      currentQuestion?.status === "RESULTS" &&
-      currentQuestion?.id &&
-      stats?.questionId !== currentQuestion.id
-    ) {
-      refetchStats?.()
-    }
-  }, [currentQuestion?.id, currentQuestion?.status, stats?.questionId])
-
-  function getCurrentPageNumber() {
-    if (!currentSlide) return 0
-
-    if (currentSlide.type === "PDF") {
-      return currentSlide.page
-    }
-
-    const prevPdf = [...slides]
-      .slice(0, slideIndex)
-      .reverse()
-      .find((s) => s.type === "PDF")
-
-    return prevPdf?.page ?? 0
-  }
-
-  function getTotalPdfPages() {
-    return slides.filter((s) => s.type === "PDF").length
-  }
-
-  const currentPage = getCurrentPageNumber()
-  const totalPages = getTotalPdfPages()
-
-  const canGoPrevious = slideIndex > 0
-  const canGoNext = slideIndex < slides.length - 1
 
   const {
     scale,
@@ -123,6 +86,16 @@ export default function PresentationArea({
   const wasFullscreen = useRef(isFullscreen)
 
   useEffect(() => {
+    if (
+      currentQuestion?.status === "RESULTS" &&
+      currentQuestion?.id &&
+      stats?.questionId !== currentQuestion.id
+    ) {
+      refetchStats?.()
+    }
+  }, [currentQuestion?.id, currentQuestion?.status, stats?.questionId, refetchStats])
+
+  useEffect(() => {
     if (wasFullscreen.current !== isFullscreen) {
       resetZoom()
     }
@@ -130,15 +103,119 @@ export default function PresentationArea({
     wasFullscreen.current = isFullscreen
   }, [isFullscreen, resetZoom])
 
+  function getCurrentPageNumber() {
+    if (!currentSlide) return 0
+
+    if (currentSlide.type === "PDF") {
+      return currentSlide.page
+    }
+
+    const prevPdf = [...slides]
+      .slice(0, slideIndex)
+      .reverse()
+      .find((s) => s.type === "PDF")
+
+    return prevPdf?.page ?? 0
+  }
+
+  function getTotalPdfPages() {
+    return slides.filter((s) => s.type === "PDF").length
+  }
+
+  function renderLockedQuestion() {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-[#0b162c] px-6">
+        <div className="max-w-md rounded-2xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-xl backdrop-blur-sm">
+          <div className="mb-4 text-5xl">🔒</div>
+
+          <h2 className="mb-3 text-2xl font-bold text-white">
+            Mantente atento
+          </h2>
+
+          <p className="text-white/75">
+            La siguiente pregunta aún está bloqueada. El profesor la lanzará en breve.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  function renderResultsQuestion() {
+    if (!currentQuestion) return null
+
+    if (!stats || stats.questionId !== currentQuestion.id) {
+      return (
+        <div className="text-center py-10 text-white">
+          Cargando resultados...
+        </div>
+      )
+    }
+
+    return (
+      <StudentResultsView
+        question={currentQuestion}
+        stats={stats}
+      />
+    )
+  }
+
+  function renderQuestionContent() {
+    if (!currentQuestion) return null
+
+    switch (currentQuestion.status) {
+      case "COUNTDOWN":
+        return <CountdownOverlay seconds={countdown ?? 0} />
+
+      case "ACTIVE":
+        return (
+          <StudentQuestionView
+            question={currentQuestion}
+            participantId={participantId}
+            remainingTime={remainingTime}
+          />
+        )
+
+      case "RESULTS":
+        return renderResultsQuestion()
+
+      case "IDLE":
+      default:
+        return renderLockedQuestion()
+    }
+  }
+
+  function renderSlideContent() {
+    if (!currentSlide) return null
+
+    if (currentSlide.type === "PDF") {
+      return (
+        <StudentPdfView
+          accessCode={accessCode}
+          pdfUrl={pdfUrl}
+          pageNumber={currentSlide.page}
+          scale={scale}
+        />
+      )
+    }
+
+    if (currentSlide.type === "QUESTION") {
+      return renderQuestionContent()
+    }
+
+    return null
+  }
+
+  const currentPage = getCurrentPageNumber()
+  const totalPages = getTotalPdfPages()
+
+  const canGoPrevious = slideIndex > 0
+  const canGoNext = slideIndex < slides.length - 1
+
   return (
-    
     <div
       ref={presentationRef}
-      className="relative flex flex-col flex-1 bg-[#0b162c]"
+      className="relative flex flex-1 flex-col bg-[#0b162c]"
     >
-
-      {/* No unido */}
-
       {!joined && (
         <JoinSessionView
           name={name}
@@ -148,13 +225,9 @@ export default function PresentationArea({
         />
       )}
 
-      {/* Unido pero esperando inicio */}
-
       {joined && !isActive && (
         <WaitingRoomView />
       )}
-
-      {/* Sesión activa */}
 
       {joined && isActive && currentSlide && (
         <>
@@ -176,65 +249,11 @@ export default function PresentationArea({
             onToggleFullscreen={() => toggleFullscreen(presentationRef.current)}
           />
 
-          {/* PDF */}
-          <div className="min-h-0 flex-1">
-            {currentSlide.type === "PDF" && (
-              <StudentPdfView
-                accessCode={accessCode}
-                pdfUrl={pdfUrl}
-                pageNumber={currentSlide.page}
-                scale={scale}
-              />
-            )}
-
-            {/* QUESTION */}
-            {currentSlide.type === "QUESTION" && currentQuestion && (
-
-              <>
-                {currentQuestion.status === "COUNTDOWN" && (
-                  <CountdownOverlay seconds={countdown ?? 0} />
-                )}
-
-                {currentQuestion.status === "ACTIVE" && (
-                  <StudentQuestionView
-                    question={currentQuestion}
-                    participantId={participantId}
-                    remainingTime={remainingTime}
-                  />
-                )}
-
-                {currentQuestion.status === "RESULTS" && stats && stats?.questionId === currentQuestion.id && (
-                  <StudentResultsView
-                    question={currentQuestion}
-                    stats={stats}
-                  />
-                )}
-
-                {currentQuestion.status === "RESULTS" && !stats && (
-                  <div className="text-white text-center py-10">
-                    Cargando resultados...
-                  </div>
-                )}
-
-                {currentQuestion.status === "IDLE" && (
-                  <div className="flex h-full w-full items-center justify-center bg-[#0b162c] px-6">
-                    <div className="max-w-md rounded-2xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-xl backdrop-blur-sm">
-                      <div className="mb-4 text-5xl">🔒</div>
-                      <h2 className="mb-3 text-2xl font-bold text-white">
-                        Mantente atento
-                      </h2>
-                      <p className="text-white/75">
-                        La siguiente pregunta aún está bloqueada. El profesor la lanzará en breve.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
+            {renderSlideContent()}
           </div>
         </>
       )}
-
     </div>
   )
 }
