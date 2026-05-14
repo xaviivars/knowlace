@@ -46,11 +46,23 @@ export default function DashboardLayout({
             <button
               type="button"
               onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-              className="rounded-xl p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
+              className="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-white/60 transition hover:bg-white/10 hover:text-white"
               aria-label={isSidebarCollapsed ? "Expandir menú" : "Contraer menú"}
               title={isSidebarCollapsed ? "Expandir menú" : "Contraer menú"}
             >
-              <Bars3BottomLeftIcon className="h-7 w-7" />
+              {isSidebarCollapsed ? (
+                <span className="relative flex h-9 w-9 items-center justify-center">
+                  <img
+                    src="/assets/images/k_dot_48.svg"
+                    alt="Knowlace"
+                    className="absolute h-9 w-9 transition-all duration-200 group-hover:scale-75 group-hover:opacity-0"
+                  />
+
+                  <Bars3BottomLeftIcon className="absolute h-7 w-7 scale-90 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
+                </span>
+              ) : (
+                <Bars3BottomLeftIcon className="h-7 w-7" />
+              )}
             </button>
           </div>
         </div>
