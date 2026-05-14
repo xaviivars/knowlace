@@ -162,7 +162,12 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
             <img
               src={user.image}
               alt=""
+              referrerPolicy="no-referrer"
               className="h-10 w-10 rounded-full object-cover"
+              onError={(event) => {
+                console.error("Error cargando imagen de perfil:", user.image)
+                event.currentTarget.style.display = "none"
+              }}
             />
           ) : (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-sm font-bold text-blue-200">

@@ -8,6 +8,8 @@ import {
   PresentationChartBarIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline"
+import { ProfileImageUpload } from "@/features/settings/components/ProfileImageUpload"
+import { updateProfileAction } from "@/features/settings/settings-actions"
 
 type SettingsSection =
   | "profile"
@@ -20,6 +22,7 @@ type SettingsPanelProps = {
   user: {
     name: string
     email: string
+    image: string | null
   }
 }
 
@@ -71,7 +74,7 @@ export function SettingsPanel({ user }: SettingsPanelProps) {
 
   return (
     <div className="h-full mt-4 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
-      <main className="ml-10 mr-auto flex w-full max-w-[94rem] flex-col gap-14 px-10 py-9 text-white">
+      <main className="ml-10 mr-auto flex w-full max-w-376 flex-col gap-14 px-10 py-9 text-white">
         <section>
           <p className="mb-2 text-sm font-medium uppercase tracking-[0.25em] text-blue-300">
             Configuración
@@ -183,41 +186,61 @@ function ProfileSettings({
   user: {
     name: string
     email: string
+    image: string | null
   }
 }) {
   return (
     <div className="space-y-8">
-      <SettingsField
-        label="Nombre visible"
-        description="Este nombre se utilizará dentro del panel del profesor."
-        contentClassName="max-w-xl justify-self-end"
-      >
-        <input
-          defaultValue={user.name}
-          className="h-11 w-full rounded-xl border border-white/10 bg-black/15 px-4 text-base text-white outline-none transition placeholder:text-white/35 focus:border-blue-400/60 focus:bg-white/10"
-        />
-      </SettingsField>
 
       <SettingsField
-        label="Correo electrónico"
-        description="Correo asociado a tu cuenta."
+        label="Foto de perfil"
+        description="Esta imagen aparecerá en tu panel y en la barra lateral."
         contentClassName="max-w-xl justify-self-end"
       >
-        <input
-          value={user.email}
-          disabled
-          className="h-11 w-full cursor-not-allowed rounded-xl border border-white/10 bg-black/20 px-4 text-base text-white/50 outline-none"
+        <ProfileImageUpload
+          user={{
+            name: user.name,
+            image: user.image,
+          }}
         />
       </SettingsField>
-
-      <div className="flex justify-end">
-        <button
-          type="button"
-          className="cursor-pointer rounded-xl bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
+      
+      <form action={updateProfileAction} className="space-y-8">
+        <SettingsField
+          label="Nombre visible"
+          description="Este nombre se utilizará dentro del panel del profesor."
+          contentClassName="max-w-xl justify-self-end"
         >
-          Guardar cambios
-        </button>
-      </div>
+          <input
+            name="name"
+            defaultValue={user.name}
+            required
+            maxLength={80}
+            className="h-11 w-full rounded-xl border border-white/10 bg-black/15 px-4 text-base text-white outline-none transition placeholder:text-white/35 focus:border-blue-400/60 focus:bg-white/10"
+          />
+        </SettingsField>
+
+        <SettingsField
+          label="Correo electrónico"
+          description="Correo asociado a tu cuenta."
+          contentClassName="max-w-xl justify-self-end"
+        >
+          <input
+            value={user.email}
+            disabled
+            className="h-11 w-full cursor-not-allowed rounded-xl border border-white/10 bg-black/20 px-4 text-base text-white/50 outline-none"
+          />
+        </SettingsField>
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="cursor-pointer rounded-xl bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
+          >
+            Guardar cambios
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
