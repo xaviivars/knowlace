@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { SidebarItem } from "@/components/ui/SidebarItem"
 import { signOut } from "@/features/auth/auth-actions"
 import {
@@ -9,10 +10,21 @@ import {
   SquaresPlusIcon,
   Bars3BottomLeftIcon,
   ArrowRightOnRectangleIcon,
+  UserCircleIcon
 } from "@heroicons/react/24/outline"
 
-export default function DashboardSidebar() {
+type DashboardSidebarProps = {
+  user: {
+    name: string
+    email: string
+    image: string | null
+  }
+}
+
+export default function DashboardSidebar({ user }: DashboardSidebarProps) {
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
 
   return (
     <aside
@@ -102,26 +114,88 @@ export default function DashboardSidebar() {
         </SidebarItem>
       </nav>
 
-      <div className="mt-auto border-t border-white/10 pt-5">
-        <form action={signOut}>
-          <button
-            type="submit"
+      <div className="relative mt-auto border-t border-white/10 pt-5">
+        {isProfileMenuOpen && (
+          <div
             className={`
-              flex w-full items-center justify-center gap-3 rounded-xl border border-red-500/20
-              bg-red-500/10 p-3 font-semibold text-red-300 transition
-              hover:bg-red-500/15 hover:text-red-200
-              ${isSidebarCollapsed ? "px-0" : ""}
+              absolute z-50 overflow-hidden rounded-2xl border border-white/10 bg-[#142544] p-1.5 shadow-2xl shadow-black/30
+              ${
+                isSidebarCollapsed
+                  ? "bottom-full left-0 mb-3 w-56"
+                  : "bottom-full left-0 right-0 mb-3"
+              }
             `}
           >
-            <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
+            <Link
+              href="/dashboard/settings"
+              onClick={() => setIsProfileMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+            >
+              <UserCircleIcon className="h-5 w-5 shrink-0 text-white/45" />
+              Perfil
+            </Link>
 
-            {!isSidebarCollapsed && (
-              <span>
+            <div className="my-1 h-px bg-white/10" />
+
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
+              >
+                <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
                 Cerrar sesión
-              </span>
-            )}
-          </button>
-        </form>
+              </button>
+            </form>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+          className={`
+            group relative flex w-full cursor-pointer items-center rounded-2xl transition hover:bg-white/5
+            ${isSidebarCollapsed ? "justify-center p-2" : "gap-3 p-2.5"}
+          `}
+          aria-label="Abrir menú de perfil"
+        >
+          {user.image ? (
+            <img
+              src={user.image}
+              alt=""
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-sm font-bold text-blue-200">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+
+          {!isSidebarCollapsed && (
+            <div className="min-w-0 text-left">
+              <p className="truncate text-sm font-semibold text-white">
+                {user.name}
+              </p>
+
+              <p className="truncate text-xs text-white/45">
+                {user.email}
+              </p>
+            </div>
+          )}
+
+          {isSidebarCollapsed && !isProfileMenuOpen && (
+            <span
+              className="
+                pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2
+                whitespace-nowrap rounded-xl border border-white/10 bg-[#142544] px-3 py-2
+                text-sm font-medium text-white opacity-0 shadow-xl shadow-black/30
+                transition-all duration-150
+                group-hover:translate-x-1 group-hover:opacity-100
+              "
+            >
+              {user.name}
+            </span>
+          )}
+        </button>
       </div>
     </aside>
   )
