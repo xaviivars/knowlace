@@ -4,13 +4,13 @@ import JoinSessionView from "@/features/session/components/student/JoinSessionVi
 import WaitingRoomView from "@/features/session/components/student/WaitingRoomView"
 import StudentQuestionView from "@/features/session/components/student/StudentQuestionView"
 import StudentResultsView from "@/features/session/components/student/StudentResultsView"
-import StudentPdfView from "@/features/session/components/student/StudentPdfView"
 import { QuestionStats } from "@/features/question/question.types"
 import { useEffect, useRef } from "react"
 import CountdownOverlay from "../CountdownOverlay"
 import PresentationToolbar from "@/features/session/components/PresentationToolbar"
 import { usePdfZoom } from "@/features/session/hooks/usePdfZoom"
 import { useFullscreen } from "@/features/session/hooks/useFullscreen"
+import PdfViewer from "../PdfViewer"
 
 type Props = {
   joined: boolean
@@ -36,7 +36,7 @@ type Props = {
   pdfUrl: string
 }
 
-export default function PresentationArea({
+export default function StudentSessionPresentation({
   joined,
   isActive,
 
@@ -189,8 +189,7 @@ export default function PresentationArea({
 
     if (currentSlide.type === "PDF") {
       return (
-        <StudentPdfView
-          accessCode={accessCode}
+        <PdfViewer
           pdfUrl={pdfUrl}
           pageNumber={currentSlide.page}
           scale={scale}
