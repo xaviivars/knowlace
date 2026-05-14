@@ -25,7 +25,7 @@ export default function DashboardLayout({
       <aside
         className={`
           shrink-0 border-r border-white/10 bg-[#0b1628] px-5 py-6 flex flex-col
-          transition-all duration-300 ease-in-out overflow-hidden
+          transition-all duration-300 ease-in-out
           ${isSidebarCollapsed ? "w-24" : "w-72"}
         `}
       >
@@ -46,23 +46,34 @@ export default function DashboardLayout({
             <button
               type="button"
               onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-              className="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-white/60 transition hover:bg-white/10 hover:text-white"
-              aria-label={isSidebarCollapsed ? "Expandir menú" : "Contraer menú"}
-              title={isSidebarCollapsed ? "Expandir menú" : "Contraer menú"}
+              className="group relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-white/60 transition hover:bg-white/10 hover:text-white"
+              aria-label={isSidebarCollapsed ? "Expandir barra lateral" : "Contraer barra lateral"}
             >
               {isSidebarCollapsed ? (
-                <span className="relative flex h-9 w-9 items-center justify-center">
+                <span className="relative flex h-10 w-10 items-center justify-center">
                   <img
                     src="/assets/images/k_dot_48.svg"
-                    alt="Knowlace"
-                    className="absolute h-9 w-9 transition-all duration-200 group-hover:scale-75 group-hover:opacity-0"
+                    alt=""
+                    className="absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 opacity-80 transition-opacity duration-200 group-hover:opacity-0"
                   />
 
-                  <Bars3BottomLeftIcon className="absolute h-7 w-7 scale-90 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
+                  <Bars3BottomLeftIcon className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                 </span>
               ) : (
                 <Bars3BottomLeftIcon className="h-7 w-7" />
               )}
+
+              <span
+                className="
+                  pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2
+                  whitespace-nowrap rounded-xl border border-white/10 bg-[#142544] px-3 py-2
+                  text-sm font-medium text-white opacity-0 shadow-xl shadow-black/30
+                  transition-all duration-150
+                  group-hover:translate-x-1 group-hover:opacity-100
+                "
+              >
+                {isSidebarCollapsed ? "Expandir barra lateral" : "Contraer barra lateral"}
+              </span>
             </button>
           </div>
         </div>
