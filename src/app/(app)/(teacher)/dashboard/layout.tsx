@@ -73,7 +73,7 @@ export default function DashboardLayout({
             </SidebarItem>
 
             <SidebarItem 
-              href="/dashboard/working" 
+              href="/dashboard/settings" 
               icon={Cog8ToothIcon}
               collapsed={isSidebarCollapsed}
             >
