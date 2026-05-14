@@ -10,7 +10,8 @@ export default function NewSessionForm() {
   const [description, setDescription] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
-  
+  const [pdfError, setPdfError] = useState<string | null>(null)
+
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,6 +97,8 @@ export default function NewSessionForm() {
             file={file}
             onFileChange={setFile}
             disabled={loading}
+            error={pdfError}
+            onError={setPdfError}
           />
 
           <button

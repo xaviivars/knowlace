@@ -7,6 +7,9 @@ import { generateAccessCode } from "@/lib/utils/generateAccessCode"
 import { uploadPdfToR2, getPublicR2Url, deleteObjectFromR2 } from "@/features/storage/r2-service"
 import { getPdfPages } from "@/lib/pdf/getPdfPages"
 
+const MAX_PDF_SIZE_MB = 20
+const MAX_PDF_SIZE = MAX_PDF_SIZE_MB * 1024 * 1024
+
 export async function createSession({
   title,
   description,
@@ -34,6 +37,14 @@ export async function createSession({
 
   if (file.type !== "application/pdf") {
     throw new Error("El archivo debe ser un PDF")
+  }
+
+  if (file.type !== "application/pdf") {
+    throw new Error("El archivo debe ser un PDF")
+  }
+
+  if (file.size > MAX_PDF_SIZE) {
+    throw new Error(`El PDF no puede superar los ${MAX_PDF_SIZE_MB} MB`)
   }
 
   const pdfPages = await getPdfPages(file)
