@@ -4,7 +4,8 @@ import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { CreateQuestionModal } from "@/features/question/components/CreateQuestionModal"
-import { deleteQuestionWithSlide, getSlidesBySessionAction } from "@/features/question/question-actions"
+import { DeleteQuestionButton } from "@/features/question/components/DeleteQuestionButton"
+import { getSlidesBySessionAction } from "@/features/question/question-actions"
 
 export default async function SessionEditorPage({
   params,
@@ -121,11 +122,7 @@ export default async function SessionEditorPage({
                     ))}
                   </ul>
 
-                  <form action={deleteQuestionWithSlide.bind(null, question.id)}>
-                    <button className="text-red-500 hover:underline">
-                      Eliminar pregunta
-                    </button>
-                  </form>
+                  <DeleteQuestionButton questionId={question.id} />
                 </div>
               )
             })

@@ -10,6 +10,7 @@ import {
   updateProfileImageAction,
   deleteProfileImageAction,
 } from "@/features/settings/settings-actions"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
 type ProfileImageUploadProps = {
   user: {
@@ -24,6 +25,7 @@ export function ProfileImageUpload({ user }: ProfileImageUploadProps) {
 
   const [isUploading, setIsUploading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -53,17 +55,13 @@ export function ProfileImageUpload({ user }: ProfileImageUploadProps) {
   }
 
   async function handleDeleteImage() {
-    const confirmed = window.confirm(
-      "¿Seguro que quieres eliminar tu foto de perfil?"
-    )
-
-    if (!confirmed) return
 
     setIsDeleting(true)
     setError(null)
 
     try {
       await deleteProfileImageAction()
+      setIsDeleteDialogOpen(false)
       router.refresh()
     } catch (error) {
       setError(
@@ -109,7 +107,7 @@ export function ProfileImageUpload({ user }: ProfileImageUploadProps) {
             {user.image && (
               <button
                 type="button"
-                onClick={handleDeleteImage}
+                onClick={() => setIsDeleteDialogOpen(true)}
                 disabled={isUploading || isDeleting}
                 className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -130,6 +128,18 @@ export function ProfileImageUpload({ user }: ProfileImageUploadProps) {
           {error}
         </div>
       )}
+
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        title="Eliminar foto de perfil"
+        description="Tu foto actual se eliminará y se mostrará la inicial de tu nombre en la barra lateral. Esta acción no se puede deshacer."
+        confirmText="Eliminar foto"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isDeleting}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteImage}
+      />
 
       <input
         ref={inputRef}
