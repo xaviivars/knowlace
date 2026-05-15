@@ -53,7 +53,14 @@ export async function createSession({
     throw new Error("PDF inválido")
   }
 
-  const { key } = await uploadPdfToR2(file, "dev")
+  const sessionId = crypto.randomUUID()
+
+  const { key } = await uploadPdfToR2({
+    file,
+    env: "dev",
+    userId: session.user.id,
+    sessionId,
+  })
 
   try {
     
@@ -62,6 +69,7 @@ export async function createSession({
 
     const newSession = await prisma.teachingSession.create({
       data: {
+        id: sessionId,
         title: title.trim(),
         description: description?.trim() || null,
         ownerId: session.user.id,

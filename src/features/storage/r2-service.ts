@@ -5,7 +5,6 @@ import {
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/r2"
 
 type StorageEnv = "dev" | "prod"
-type AssetKind = "pdfs" | "avatars"
 
 function sanitizeFilename(filename: string) {
   return filename
@@ -14,28 +13,55 @@ function sanitizeFilename(filename: string) {
     .replace(/[^a-zA-Z0-9._-]/g, "")
 }
 
-export function buildR2Key({
+function getBasePrefix(env: StorageEnv) {
+  return env
+}
+
+export function buildPdfKey({
   env,
-  kind,
+  userId,
+  sessionId,
   filename,
 }: {
   env: StorageEnv
-  kind: AssetKind
+  userId: string
+  sessionId: string
   filename: string
 }) {
   const safeName = sanitizeFilename(filename)
-  return `${env}/${kind}/${Date.now()}-${safeName}`
+
+  return `${getBasePrefix(env)}/pdfs/${userId}/${sessionId}/slides-${Date.now()}-${safeName}`
 }
 
-export async function uploadPdfToR2(
-  file: File,
-  env: StorageEnv = "dev"
-) {
+export function buildProfileImageKey({
+  env,
+  userId,
+  extension,
+}: {
+  env: StorageEnv
+  userId: string
+  extension: string
+}) {
+  return `${getBasePrefix(env)}/profile_pics/${userId}/avatar-${Date.now()}.${extension}`
+}
+
+export async function uploadPdfToR2({
+  file,
+  env = "dev",
+  userId,
+  sessionId,
+}: {
+  file: File
+  env?: StorageEnv
+  userId: string
+  sessionId: string
+}) {
   const buffer = Buffer.from(await file.arrayBuffer())
 
-  const key = buildR2Key({
+  const key = buildPdfKey({
     env,
-    kind: "pdfs",
+    userId,
+    sessionId,
     filename: file.name,
   })
 
