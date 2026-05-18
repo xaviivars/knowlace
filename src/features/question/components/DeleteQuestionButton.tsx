@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { deleteQuestionWithSlide } from "@/features/question/question-actions"
+import { TrashIcon } from "@heroicons/react/24/outline"
 
 type DeleteQuestionButtonProps = {
   questionId: string
@@ -36,9 +37,16 @@ export function DeleteQuestionButton({
         type="button"
         onClick={() => setIsOpen(true)}
         disabled={isPending}
-        className="cursor-pointer text-red-400 transition hover:text-red-300 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+        className="
+          inline-flex cursor-pointer items-center gap-2 rounded-xl
+          border border-red-500/20 bg-red-500/10 px-3 py-2
+          text-sm font-semibold text-red-300 transition
+          hover:border-red-400/40 hover:bg-red-500/20 hover:text-red-200
+          disabled:cursor-not-allowed disabled:opacity-50
+        "
       >
-        {isPending ? "Eliminando..." : "Eliminar pregunta"}
+        <TrashIcon className="h-4 w-4 shrink-0" />
+        {isPending ? "Eliminando..." : "Eliminar"}
       </button>
 
       <ConfirmDialog

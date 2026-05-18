@@ -94,6 +94,82 @@ import { QuestionType } from "@prisma/client"
 
   }
 
+  // ---------------- UPDATE  ----------------
+
+  export async function updateQuestionAction({
+    questionId,
+    content,
+    type,
+    options,
+  }: {
+    questionId: string
+    content: string
+    type: QuestionType
+    options: { content: string; isCorrect: boolean }[]
+  }) {
+    const sessionAuth = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!sessionAuth) throw new Error("Unauthorized")
+
+    validateQuestionInput({
+      type,
+      content,
+      options,
+    })
+
+    const question = await prisma.question.findUnique({
+      where: {
+        id: questionId,
+      },
+      include: {
+        session: true,
+      },
+    })
+
+    if (!question) {
+      throw new Error("Pregunta no encontrada")
+    }
+
+    if (question.session.ownerId !== sessionAuth.user.id) {
+      throw new Error("Forbidden")
+    }
+
+    const trimmedContent = content.trim()
+
+    const finalOptions =
+      type === "SHORT_ANSWER"
+        ? []
+        : options
+            .map((option) => ({
+              content: option.content.trim(),
+              isCorrect: option.isCorrect,
+            }))
+            .filter((option) => option.content.length > 0)
+
+    await prisma.$transaction(async (tx) => {
+      await tx.option.deleteMany({
+        where: {
+          questionId,
+        },
+      })
+
+      await tx.question.update({
+        where: {
+          id: questionId,
+        },
+        data: {
+          content: trimmedContent,
+          type,
+          options: {
+            create: finalOptions,
+          },
+        },
+      })
+    })
+  }
+
   // ---------------- DELETE ----------------
 
   export async function deleteQuestionWithSlide(questionId: string) {

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { CreateQuestionModal } from "@/features/question/components/CreateQuestionModal"
 import { DeleteQuestionButton } from "@/features/question/components/DeleteQuestionButton"
+import { EditQuestionModal } from "@/features/question/components/EditQuestionModal"
 import { getSlidesBySessionAction } from "@/features/question/question-actions"
 
 export default async function SessionEditorPage({
@@ -178,7 +179,16 @@ export default async function SessionEditorPage({
                         </h2>
                       </div>
 
-                      <div className="shrink-0">
+                      <div className="flex shrink-0 items-center gap-2">
+                        <EditQuestionModal
+                          question={{
+                            id: question.id,
+                            content: question.content,
+                            type: question.type,
+                            options: question.options,
+                          }}
+                        />
+
                         <DeleteQuestionButton questionId={question.id} />
                       </div>
                     </div>
@@ -187,7 +197,7 @@ export default async function SessionEditorPage({
                       {question.options.map((option, index) => (
                         <div
                           key={option.id}
-                          className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
+                          className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
                             option.isCorrect
                               ? "border-green-400/30 bg-green-500/10 text-green-100"
                               : "border-white/10 bg-black/15 text-white/65"
