@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 type PresentationToolbarProps = {
   currentPageNumber: number
   totalPdfPages: number
@@ -18,6 +20,7 @@ type PresentationToolbarProps = {
   onResetZoom?: () => void
   isFullscreen?: boolean
   onToggleFullscreen?: () => void
+  onGoToPage?: (page: number) => void
 }
 
 export default function PresentationToolbar({
@@ -38,22 +41,128 @@ export default function PresentationToolbar({
   onResetZoom,
   isFullscreen,
   onToggleFullscreen,
+  onGoToPage
 }: PresentationToolbarProps) {
+
+  const [pageInput, setPageInput] = useState(String(currentPageNumber || 1))
+
+  useEffect(() => {
+    setPageInput(String(currentPageNumber || 1))
+  }, [currentPageNumber])
+
+  function getNormalizedInputPage() {
+    const trimmedValue = pageInput.trim()
+
+    if (!trimmedValue) {
+      return null
+    }
+
+    const page = Number(trimmedValue)
+
+    if (!Number.isInteger(page)) {
+      return null
+    }
+
+    return Math.min(Math.max(page, 1), totalPdfPages)
+  }
+
+  function commitPageInput() {
+    const normalizedPage = getNormalizedInputPage()
+
+    if (!normalizedPage) {
+      setPageInput(String(currentPageNumber || 1))
+      return false
+    }
+
+    setPageInput(String(normalizedPage))
+
+    if (normalizedPage !== currentPageNumber) {
+      onGoToPage?.(normalizedPage)
+      return true
+    }
+
+    return false
+  }
+
+  function handleGoToPage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    commitPageInput()
+  }
+
+  function handlePreviousClick() {
+    const hasChangedPage = commitPageInput()
+
+    if (!hasChangedPage) {
+      onPrevious()
+    }
+  }
+
+  function handleNextClick() {
+    const hasChangedPage = commitPageInput()
+
+    if (!hasChangedPage) {
+      onNext()
+    }
+  }
+
   return (
     <div className="flex h-14 shrink-0 items-center justify-center border-b border-white/10 bg-[#081120]/95 px-5 text-white shadow-sm backdrop-blur">
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={onPrevious}
+          onClick={handlePreviousClick}
           disabled={!canGoPrevious}
           className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
         >
           ←
         </button>
 
-        <span className="min-w-40 rounded-lg bg-white/5 px-3 py-1.5 text-center text-sm font-medium text-white/85">
-          Página {currentPageNumber} de {totalPdfPages}
-        </span>
+        <form
+          onSubmit={handleNextClick}
+          className="flex h-8 w-36 items-center justify-center rounded-lg bg-white/5 px-2 text-sm font-medium text-white/85"
+        >
+          <span className="leading-none text-white/55">
+            Página
+          </span>
+
+          <input
+            value={pageInput}
+            onChange={(event) => setPageInput(event.target.value)}
+            onBlur={() => {
+              commitPageInput()
+            }}
+            disabled={!onGoToPage}
+            inputMode="numeric"
+            className="
+              mx-0.5
+              flex
+              h-6
+              w-7
+              items-center
+              rounded-md
+              border border-transparent
+              bg-transparent
+              p-0
+              text-center
+              text-sm
+              leading-none
+              text-white
+              outline-none
+              transition
+              hover:border-white/10
+              hover:bg-white/5
+              focus:border-blue-400/50
+              focus:bg-blue-500/10
+              focus:ring-2
+              focus:ring-blue-400/10
+              disabled:cursor-not-allowed
+            "
+          />
+
+          <span className="leading-none text-white/55">
+            de {totalPdfPages}
+          </span>
+        </form>
 
         <button
           type="button"

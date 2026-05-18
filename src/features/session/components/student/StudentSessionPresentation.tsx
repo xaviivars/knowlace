@@ -184,6 +184,16 @@ export default function StudentSessionPresentation({
     }
   }
 
+  function handleGoToPage(page: number) {
+    const targetIndex = slides.findIndex(
+      (slide) => slide.type === "PDF" && slide.page === page
+    )
+
+    if (targetIndex === -1) return
+
+    onSlideChange(targetIndex)
+  }
+
   function renderSlideContent() {
     if (!currentSlide) return null
 
@@ -237,6 +247,7 @@ export default function StudentSessionPresentation({
             canGoNext={canGoNext}
             onPrevious={() => onSlideChange(slideIndex - 1)}
             onNext={() => onSlideChange(slideIndex + 1)}
+            onGoToPage={handleGoToPage}
             showZoomControls={currentSlide.type === "PDF"}
             zoomPercentage={zoomPercentage}
             canZoomIn={canZoomIn}
