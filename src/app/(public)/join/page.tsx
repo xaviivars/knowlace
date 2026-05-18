@@ -85,7 +85,7 @@ export default function Join() {
           }
           ${
             isShaking
-              ? "[animation:joinShake_0.38s_ease-in-out]"
+              ? "animate-[joinShake_0.38s_ease-in-out]"
               : ""
           }
         `}
