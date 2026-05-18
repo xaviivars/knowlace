@@ -216,3 +216,36 @@ export async function deleteSession(sessionId: string) {
 
   return { success: true }
 }
+
+export async function checkSessionAccessCode(accessCode: string) {
+  const normalizedCode = accessCode.trim().toUpperCase()
+
+  if (!normalizedCode) {
+    return {
+      exists: false,
+      message: "Introduce un código de sesión.",
+    }
+  }
+
+  const session = await prisma.teachingSession.findUnique({
+    where: {
+      accessCode: normalizedCode,
+    },
+    select: {
+      id: true,
+      isActive: true,
+    },
+  })
+
+  if (!session) {
+    return {
+      exists: false,
+      message: "No se ha encontrado ninguna sesión con ese código.",
+    }
+  }
+
+  return {
+    exists: true,
+    message: null,
+  }
+}
