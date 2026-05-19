@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { SettingsPanel } from "@/features/settings/components/SettingsPanel"
+import { getAiUsageSummary } from "@/features/ai/ai-usage-service"
 
 export default async function SettingsPage() {
   const session = await auth.api.getSession({
@@ -28,6 +29,7 @@ export default async function SettingsPage() {
     redirect("/login")
   }
 
+  const aiUsage = await getAiUsageSummary(session.user.id)
 
   return (
     <SettingsPanel
@@ -35,6 +37,11 @@ export default async function SettingsPage() {
         name: user.name ?? "Usuario",
         email: user.email,
         image: user.image ?? null,
+      }}
+      aiUsage={{
+        ...aiUsage,
+        periodStart: aiUsage.periodStart.toISOString(),
+        periodEnd: aiUsage.periodEnd.toISOString(),
       }}
     />
   )

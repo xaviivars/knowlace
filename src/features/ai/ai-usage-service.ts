@@ -5,13 +5,40 @@ type AiUsagePeriod =
   | { type: "monthly" }
   | { type: "fixed_hours"; hours: number }
 
-const AI_USAGE_LIMIT = {
+export const AI_USAGE_LIMIT = {
   period: { type: "daily" } as const,
   maxTokens: 1580,
 }
 
 export function estimateTokensFromText(text: string) {
   return Math.ceil(text.length / 4)
+}
+
+export async function getAiUsageSummary(userId: string) {
+  const period = getAiUsagePeriod()
+
+  const usage = await prisma.aiUsage.findUnique({
+    where: {
+      userId_periodType_periodStart: {
+        userId,
+        periodType: period.periodType,
+        periodStart: period.periodStart,
+      },
+    },
+  })
+
+  const usedTokens = usage?.totalTokens ?? 0
+  const remainingTokens = Math.max(AI_USAGE_LIMIT.maxTokens - usedTokens, 0)
+
+  return {
+    periodType: period.periodType,
+    periodStart: period.periodStart,
+    periodEnd: period.periodEnd,
+    usedTokens,
+    remainingTokens,
+    maxTokens: AI_USAGE_LIMIT.maxTokens,
+    requests: usage?.requests ?? 0,
+  }
 }
 
 export function getAiUsagePeriod(

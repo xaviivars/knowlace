@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   UserCircleIcon,
   PaintBrushIcon,
   EyeIcon,
   PresentationChartBarIcon,
   ShieldCheckIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline"
 import { ProfileImageUpload } from "@/features/settings/components/ProfileImageUpload"
 import { updateProfileAction } from "@/features/settings/settings-actions"
 
 type SettingsSection =
   | "profile"
+  | "usage"
   | "appearance"
   | "accessibility"
   | "presentation"
@@ -24,6 +26,17 @@ type SettingsPanelProps = {
     email: string
     image: string | null
   }
+  aiUsage: AiUsageSummary
+}
+
+type AiUsageSummary = {
+  periodType: string
+  periodStart: string
+  periodEnd: string
+  usedTokens: number
+  remainingTokens: number
+  maxTokens: number
+  requests: number
 }
 
 const settingsSections: {
@@ -37,6 +50,12 @@ const settingsSections: {
     label: "Perfil público",
     description: "Nombre y datos visibles de tu cuenta.",
     icon: UserCircleIcon,
+  },
+  {
+    id: "usage",
+    label: "Uso",
+    description: "Consulta tu consumo de IA y tokens disponibles.",
+    icon: ChartBarIcon,
   },
   {
     id: "appearance",
@@ -64,7 +83,7 @@ const settingsSections: {
   },
 ]
 
-export function SettingsPanel({ user }: SettingsPanelProps) {
+export function SettingsPanel({ user, aiUsage }: SettingsPanelProps) {
   const [activeSection, setActiveSection] =
     useState<SettingsSection>("profile")
 
@@ -114,6 +133,10 @@ export function SettingsPanel({ user }: SettingsPanelProps) {
 
             {activeSection === "profile" && (
               <ProfileSettings user={user} />
+            )}
+
+            {activeSection === "usage" && (
+              <UsageSettings usage={aiUsage} />
             )}
 
             {activeSection === "appearance" && (
@@ -464,4 +487,143 @@ function SettingsToggle({
       />
     </label>
   )
+}
+
+function UsageSettings({
+  usage,
+}: {
+  usage: AiUsageSummary
+}) {
+  const usedPercentage =
+    usage.maxTokens > 0
+      ? Math.min((usage.usedTokens / usage.maxTokens) * 100, 100)
+      : 0
+
+  return (
+    <div className="space-y-6">
+      <div className="max-w-5xl rounded-3xl border border-white/10 bg-[#142544]/80 p-6 shadow-xl">
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-[0.25em] text-blue-300">
+              Uso de IA
+            </p>
+
+            <h3 className="mt-2 text-3xl font-bold text-white">
+              Tokens disponibles
+            </h3>
+
+            <p className="mt-2 max-w-2xl text-white/55">
+              Este contador limita el uso de generación con IA para evitar consumo excesivo.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-blue-400/20 bg-blue-500/10 px-4 py-3 text-right">
+            <p className="text-xs uppercase tracking-wide text-blue-200/70">
+              Reinicio
+            </p>
+
+            <AiUsageCountdown periodEnd={usage.periodEnd} />
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <UsageMetric
+            label="Usados"
+            value={formatTokens(usage.usedTokens)}
+          />
+
+          <UsageMetric
+            label="Restantes"
+            value={formatTokens(usage.remainingTokens)}
+          />
+
+          <UsageMetric
+            label="Solicitudes"
+            value={String(usage.requests)}
+          />
+        </div>
+
+        <div className="mt-8">
+          <div className="mb-3 flex items-center justify-between text-sm">
+            <span className="text-white/55">
+              Consumo actual
+            </span>
+
+            <span className="font-medium text-white/75">
+              {formatTokens(usage.usedTokens)} / {formatTokens(usage.maxTokens)}
+            </span>
+          </div>
+
+          <div className="h-3 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-blue-400 transition-all"
+              style={{
+                width: `${usedPercentage}%`,
+              }}
+            />
+          </div>
+
+          <p className="mt-3 text-sm text-white/40">
+            El límite actual se reinicia automáticamente al finalizar la ventana de uso.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function UsageMetric({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/15 p-5">
+      <p className="text-sm text-white/45">
+        {label}
+      </p>
+
+      <p className="mt-2 text-2xl font-bold text-white">
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function AiUsageCountdown({
+  periodEnd,
+}: {
+  periodEnd: string
+}) {
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(periodEnd))
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setTimeLeft(getTimeLeft(periodEnd))
+    }, 1000)
+
+    return () => window.clearInterval(interval)
+  }, [periodEnd])
+
+  return (
+    <p className="mt-1 font-mono text-lg font-bold text-blue-100">
+      {timeLeft}
+    </p>
+  )
+}
+
+function getTimeLeft(periodEnd: string) {
+  const diff = Math.max(new Date(periodEnd).getTime() - Date.now(), 0)
+
+  const hours = Math.floor(diff / 1000 / 60 / 60)
+  const minutes = Math.floor((diff / 1000 / 60) % 60)
+  const seconds = Math.floor((diff / 1000) % 60)
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+}
+
+function formatTokens(value: number) {
+  return new Intl.NumberFormat("es-ES").format(value)
 }
