@@ -7,7 +7,7 @@ type AiUsagePeriod =
 
 export const AI_USAGE_LIMIT = {
   period: { type: "daily" } as const,
-  maxTokens: 1580,
+  maxTokens: 20000,
 }
 
 export function estimateTokensFromText(text: string) {
