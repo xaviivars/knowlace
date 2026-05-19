@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { DeleteSessionButton } from "@/features/session/components/DeleteSessionButton"
+import { SessionOptionsMenu } from "@/features/session/components/teacher/SessionOptionsMenu"
 import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon } from "@heroicons/react/24/outline"
 
 type DashboardSession = {
@@ -260,15 +260,11 @@ export function DashboardSessionsSection({
                 </div>
               </Link>
 
-              <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-                <Link
-                  href={`/dashboard/sessions/${s.id}/edit`}
-                  className="text-sm font-medium text-blue-300 transition hover:text-blue-200 hover:underline"
-                >
-                  Editar preguntas
-                </Link>
-
-                <DeleteSessionButton sessionId={s.id} title={s.title} />
+              <div className="mt-5 flex items-center justify-end border-t border-white/10 pt-4">
+                <SessionOptionsMenu
+                  sessionId={s.id}
+                  title={s.title}
+                />
               </div>
             </article>
           ))}

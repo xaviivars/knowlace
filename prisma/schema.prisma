@@ -87,6 +87,8 @@ model TeachingSession {
 
   accessCode String   @unique
   isActive   Boolean  @default(false)
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

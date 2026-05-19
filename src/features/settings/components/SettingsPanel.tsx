@@ -9,13 +9,24 @@ import {
   PresentationChartBarIcon,
   ShieldCheckIcon,
   ChartBarIcon,
+  ArchiveBoxIcon,
+  EllipsisVerticalIcon,
+  ArrowUturnLeftIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline"
 import { ProfileImageUpload } from "@/features/settings/components/ProfileImageUpload"
 import { updateProfileAction } from "@/features/settings/settings-actions"
+import { useTransition } from "react"
+import {
+  deleteSession,
+  restoreSession,
+} from "@/features/session/session-actions"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
 type SettingsSection =
   | "profile"
   | "usage"
+  | "archive"
   | "appearance"
   | "accessibility"
   | "presentation"
@@ -28,6 +39,7 @@ type SettingsPanelProps = {
     image: string | null
   }
   aiUsage: AiUsageSummary
+  archivedSessions: ArchivedSession[]
 }
 
 type AiUsageSummary = {
@@ -38,6 +50,16 @@ type AiUsageSummary = {
   remainingTokens: number
   maxTokens: number
   requests: number
+}
+
+type ArchivedSession = {
+  id: string
+  title: string
+  description: string | null
+  accessCode: string
+  pdfPages: number
+  createdAt: string
+  archivedAt: string | null
 }
 
 const settingsSections: {
@@ -57,6 +79,12 @@ const settingsSections: {
     label: "Uso",
     description: "Consulta tu consumo de IA y tokens disponibles.",
     icon: ChartBarIcon,
+  },
+  {
+    id: "archive",
+    label: "Archivo",
+    description: "Consulta y restaura tus sesiones archivadas.",
+    icon: ArchiveBoxIcon,
   },
   {
     id: "appearance",
@@ -84,7 +112,11 @@ const settingsSections: {
   },
 ]
 
-export function SettingsPanel({ user, aiUsage }: SettingsPanelProps) {
+export function SettingsPanel({ 
+  user, 
+  aiUsage,
+  archivedSessions, 
+}: SettingsPanelProps) {
   const [activeSection, setActiveSection] =
     useState<SettingsSection>("profile")
 
@@ -138,6 +170,10 @@ export function SettingsPanel({ user, aiUsage }: SettingsPanelProps) {
 
             {activeSection === "usage" && (
               <UsageSettings usage={aiUsage} />
+            )}
+
+            {activeSection === "archive" && (
+              <ArchiveSettings archivedSessions={archivedSessions} />
             )}
 
             {activeSection === "appearance" && (
@@ -315,6 +351,101 @@ function ProfileSettings({
             className="h-11 w-full cursor-not-allowed rounded-xl border border-white/10 bg-black/20 px-4 text-base text-white/50 outline-none"
           />
         </SettingsField>
+    </div>
+  )
+}
+
+function ArchiveSettings({
+  archivedSessions,
+}: {
+  archivedSessions: ArchivedSession[]
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="max-w-5xl rounded-3xl border border-white/10 bg-[#142544]/80 p-6 shadow-xl">
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium uppercase tracking-[0.25em] text-blue-300">
+            Archivo
+          </p>
+
+          <h3 className="text-3xl font-bold text-white">
+            Sesiones archivadas
+          </h3>
+
+          <p className="max-w-2xl text-white/55">
+            Las sesiones archivadas no aparecen en tu panel principal, pero puedes restaurarlas cuando quieras.
+          </p>
+        </div>
+
+        {archivedSessions.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-dashed border-white/15 bg-black/15 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 text-3xl">
+              🗂️
+            </div>
+
+            <h4 className="text-xl font-semibold text-white">
+              No tienes sesiones archivadas
+            </h4>
+
+            <p className="mt-2 text-sm text-white/45">
+              Cuando archives una sesión, aparecerá aquí.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8 space-y-3">
+            {archivedSessions.map((session) => (
+              <ArchivedSessionRow
+                key={session.id}
+                session={session}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ArchivedSessionRow({
+  session,
+}: {
+  session: ArchivedSession
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/15 px-5 py-4 transition hover:bg-white/[0.04]">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <h4 className="truncate text-base font-semibold text-white">
+            {session.title}
+          </h4>
+
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-white/45">
+            {session.pdfPages} pág.
+          </span>
+        </div>
+
+        <p className="mt-1 line-clamp-1 text-sm text-white/45">
+          {session.description || "Sin descripción."}
+        </p>
+
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-white/35">
+          <span className="font-mono tracking-widest text-blue-200/70">
+            {session.accessCode}
+          </span>
+
+          <span>
+            Archivada el{" "}
+            {session.archivedAt
+              ? new Date(session.archivedAt).toLocaleDateString("es-ES")
+              : "—"}
+          </span>
+        </div>
+      </div>
+
+      <ArchivedSessionOptionsMenu
+        sessionId={session.id}
+        title={session.title}
+      />
     </div>
   )
 }
@@ -677,4 +808,121 @@ function getTimeLeft(periodEnd: string) {
 
 function formatTokens(value: number) {
   return new Intl.NumberFormat("es-ES").format(value)
+}
+
+function ArchivedSessionOptionsMenu({
+  sessionId,
+  title,
+}: {
+  sessionId: string
+  title: string
+}) {
+  const router = useRouter()
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  const [isPending, startTransition] = useTransition()
+
+  function handleRestore() {
+    startTransition(async () => {
+      try {
+        await restoreSession(sessionId)
+        setIsRestoreDialogOpen(false)
+        setIsMenuOpen(false)
+        router.refresh()
+      } catch (error) {
+        console.error(error)
+        alert("No se pudo restaurar la sesión")
+      }
+    })
+  }
+
+  function handleDelete() {
+    startTransition(async () => {
+      try {
+        await deleteSession(sessionId)
+        setIsDeleteDialogOpen(false)
+        setIsMenuOpen(false)
+        router.refresh()
+      } catch (error) {
+        console.error(error)
+        alert("No se pudo eliminar la sesión")
+      }
+    })
+  }
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setIsMenuOpen((prev) => !prev)}
+        onBlur={() => {
+          setTimeout(() => setIsMenuOpen(false), 120)
+        }}
+        disabled={isPending}
+        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label="Opciones de sesión archivada"
+      >
+        <EllipsisVerticalIcon className="h-5 w-5" />
+      </button>
+
+      {isMenuOpen && (
+        <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1628] p-1.5 shadow-2xl shadow-black/40">
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              setIsRestoreDialogOpen(true)
+              setIsMenuOpen(false)
+            }}
+            className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+          >
+            <ArrowUturnLeftIcon className="h-4 w-4 text-blue-300" />
+            Restaurar sesión
+          </button>
+
+          <div className="my-1 h-px bg-white/10" />
+
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              setIsDeleteDialogOpen(true)
+              setIsMenuOpen(false)
+            }}
+            className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
+          >
+            <TrashIcon className="h-4 w-4" />
+            Eliminar definitivamente
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={isRestoreDialogOpen}
+        title="Restaurar sesión"
+        description={`La sesión "${title}" volverá a aparecer en tu panel principal.`}
+        confirmText="Restaurar sesión"
+        cancelText="Cancelar"
+        variant="default"
+        isLoading={isPending}
+        onCancel={() => setIsRestoreDialogOpen(false)}
+        onConfirm={handleRestore}
+      />
+
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        title="Eliminar sesión"
+        description={`Vas a eliminar definitivamente la sesión "${title}". También se eliminará el PDF asociado. Esta acción no se puede deshacer.`}
+        confirmText="Eliminar sesión"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isPending}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDelete}
+      />
+    </div>
+  )
 }

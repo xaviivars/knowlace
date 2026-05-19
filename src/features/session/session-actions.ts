@@ -249,3 +249,61 @@ export async function checkSessionAccessCode(accessCode: string) {
     message: null,
   }
 }
+
+export async function archiveSession(sessionId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (!session) {
+    throw new Error("Unauthorized")
+  }
+
+  const existing = await prisma.teachingSession.findUnique({
+    where: { id: sessionId },
+  })
+
+  if (!existing || existing.ownerId !== session.user.id) {
+    throw new Error("Forbidden")
+  }
+
+  await prisma.teachingSession.update({
+    where: { id: sessionId },
+    data: {
+      isArchived: true,
+      archivedAt: new Date(),
+      isActive: false,
+    },
+  })
+
+  return { success: true }
+}
+
+export async function restoreSession(sessionId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (!session) {
+    throw new Error("Unauthorized")
+  }
+
+  const existing = await prisma.teachingSession.findUnique({
+    where: { id: sessionId },
+  })
+
+  if (!existing || existing.ownerId !== session.user.id) {
+    throw new Error("Forbidden")
+  }
+
+  await prisma.teachingSession.update({
+    where: { id: sessionId },
+    data: {
+      isArchived: false,
+      archivedAt: null,
+      isActive: false
+    },
+  })
+
+  return { success: true }
+}

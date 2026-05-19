@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { DeleteSessionButton } from "@/features/session/components/DeleteSessionButton";
 import Link from "next/link";
 import { AppBackground } from "@/components/ui/AppBackground";
 import { DashboardSessionsSection } from "@/features/session/components/teacher/DashboardSessionsSection"
@@ -22,6 +21,7 @@ export default async function Dashboard() {
   const sessions = await prisma.teachingSession.findMany({
     where: {
       ownerId: session.user.id,
+      isArchived: false,
     },
     orderBy: {
       createdAt: "desc",

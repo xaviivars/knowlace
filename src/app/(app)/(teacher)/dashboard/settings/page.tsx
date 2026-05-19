@@ -31,6 +31,25 @@ export default async function SettingsPage() {
 
   const aiUsage = await getAiUsageSummary(session.user.id)
 
+  const archivedSessions = await prisma.teachingSession.findMany({
+    where: {
+      ownerId: session.user.id,
+      isArchived: true,
+    },
+    orderBy: {
+      archivedAt: "desc",
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      accessCode: true,
+      pdfPages: true,
+      createdAt: true,
+      archivedAt: true,
+    },
+  })
+
   return (
     <SettingsPanel
       user={{
@@ -43,6 +62,11 @@ export default async function SettingsPage() {
         periodStart: aiUsage.periodStart.toISOString(),
         periodEnd: aiUsage.periodEnd.toISOString(),
       }}
+      archivedSessions={archivedSessions.map((session) => ({
+        ...session,
+        createdAt: session.createdAt.toISOString(),
+        archivedAt: session.archivedAt?.toISOString() ?? null,
+      }))}
     />
   )
 }
