@@ -7,9 +7,15 @@ import { prisma } from "@/lib/prisma"
 import { extractPdfPageText } from "@/lib/pdf/extractPdfText"
 import { generateQuestionsFromText } from "@/features/ai/ai-questions-service"
 import { generateQuestionsPreviewInputSchema } from "@/features/ai/ai-question.schema"
+import {
+  assertCanUseAi,
+  estimateTokensFromText,
+  trackAiUsage,
+} from "@/features/ai/ai-usage-service"
 
 const MAX_PAGE_RANGE = 10
 const MIN_TEXT_LENGTH = 80
+const ESTIMATED_OUTPUT_TOKENS = 1_500
 
 function createTextHash(text: string) {
   return createHash("sha256").update(text).digest("hex")
@@ -141,15 +147,30 @@ export async function generateQuestionsPreviewAction(input: unknown) {
     )
   }
 
-  const questions = await generateQuestionsFromText({
-    text: sourceText,
-    amount: parsedInput.amount,
-    type: parsedInput.type,
-  })
+const estimatedInputTokens = estimateTokensFromText(sourceText)
+const estimatedOutputTokens = 1_500
+const estimatedTotalTokens = estimatedInputTokens + estimatedOutputTokens
 
-  return {
-    sourcePages: pageRange,
-    sourceText,
-    questions,
-  }
+await assertCanUseAi({
+  userId: authSession.user.id,
+  estimatedTokens: estimatedTotalTokens,
+})
+
+const result = await generateQuestionsFromText({
+  text: sourceText,
+  amount: parsedInput.amount,
+  type: parsedInput.type,
+})
+
+await trackAiUsage({
+  userId: authSession.user.id,
+  inputTokens: result.usage?.inputTokens ?? estimatedInputTokens,
+  outputTokens: result.usage?.outputTokens ?? estimatedOutputTokens,
+})
+
+return {
+  sourcePages: pageRange,
+  sourceText,
+  questions: result.questions,
+}
 }

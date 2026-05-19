@@ -70,7 +70,7 @@ export default function JoinSessionView({
           w-full max-w-md rounded-3xl border bg-[#142544]/90 p-8 text-center shadow-2xl shadow-black/25 backdrop-blur
           transition-colors
           ${visibleError ? "border-red-400/30" : "border-white/10"}
-          ${isShaking ? "[animation:joinShake_0.38s_ease-in-out]" : ""}
+          ${isShaking ? "animate-[joinShake_0.38s_ease-in-out]" : ""}
         `}
       >
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/15 text-3xl">

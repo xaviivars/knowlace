@@ -17,6 +17,15 @@ type GenerateQuestionsFromTextParams = {
   type: SupportedAiQuestionType
 }
 
+type GenerateQuestionsFromTextResult = {
+  questions: GeneratedQuestion[]
+  usage: {
+    inputTokens: number
+    outputTokens: number
+    totalTokens: number
+  } | null
+}
+
 function buildJsonSchema(type: SupportedAiQuestionType, amount: number) {
   if (type === "MULTIPLE_CHOICE") {
     return {
@@ -220,7 +229,7 @@ export async function generateQuestionsFromText({
   text,
   amount,
   type,
-}: GenerateQuestionsFromTextParams): Promise<GeneratedQuestion[]> {
+}: GenerateQuestionsFromTextParams): Promise<GenerateQuestionsFromTextResult> {
   const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini"
 
   if (!process.env.OPENAI_API_KEY) {
@@ -297,5 +306,14 @@ ${text}
 
   validateGeneratedQuestions(parsed.questions)
 
-  return parsed.questions
+  return {
+    questions: parsed.questions,
+    usage: response.usage
+      ? {
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+          totalTokens: response.usage.total_tokens,
+        }
+      : null,
+  }
 }
