@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   UserCircleIcon,
   PaintBrushIcon,
@@ -212,6 +213,41 @@ function ProfileSettings({
     image: string | null
   }
 }) {
+
+  const router = useRouter()
+
+  const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (status !== "success") return
+
+    const timeout = window.setTimeout(() => {
+      setStatus("idle")
+    }, 2500)
+
+    return () => window.clearTimeout(timeout)
+  }, [status])
+
+  async function handleUpdateProfile(formData: FormData) {
+    setStatus("saving")
+    setErrorMessage(null)
+
+    try {
+      await updateProfileAction(formData)
+
+      setStatus("success")
+      router.refresh()
+    } catch (error) {
+      setStatus("error")
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron guardar los cambios."
+      )
+    }
+  }
+
   return (
     <div className="space-y-8">
 
@@ -228,19 +264,44 @@ function ProfileSettings({
         />
       </SettingsField>
       
-      <form action={updateProfileAction} className="space-y-8">
         <SettingsField
           label="Nombre visible"
           description="Este nombre se utilizará dentro del panel del profesor."
           contentClassName="max-w-xl justify-self-end"
         >
-          <input
-            name="name"
-            defaultValue={user.name}
-            required
-            maxLength={80}
-            className="h-11 w-full rounded-xl border border-white/10 bg-black/15 px-4 text-base text-white outline-none transition placeholder:text-white/35 focus:border-blue-400/60 focus:bg-white/10"
-          />
+          <form action={handleUpdateProfile} className="space-y-3">
+            <div className="flex items-center gap-5">
+              <input
+                name="name"
+                defaultValue={user.name}
+                required
+                minLength={2}
+                maxLength={50}
+                disabled={status === "saving"}
+                className="h-11 min-w-0 flex-1 rounded-xl border border-white/10 bg-black/15 px-4 text-base text-white outline-none transition placeholder:text-white/35 focus:border-blue-400/60 focus:bg-white/10"
+              />
+
+              <button
+                type="submit"
+                disabled={status === "saving"}
+                className="h-11 shrink-0 cursor-pointer rounded-xl bg-blue-800 px-5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {status === "saving" ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+
+            {status === "success" && (
+              <p className="text-sm font-medium text-green-300">
+                Cambios guardados correctamente.
+              </p>
+            )}
+
+            {status === "error" && errorMessage && (
+              <p className="text-sm font-medium text-red-300">
+                {errorMessage}
+              </p>
+            )}
+          </form>
         </SettingsField>
 
         <SettingsField
@@ -254,16 +315,6 @@ function ProfileSettings({
             className="h-11 w-full cursor-not-allowed rounded-xl border border-white/10 bg-black/20 px-4 text-base text-white/50 outline-none"
           />
         </SettingsField>
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="cursor-pointer rounded-xl bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
-          >
-            Guardar cambios
-          </button>
-        </div>
-      </form>
     </div>
   )
 }

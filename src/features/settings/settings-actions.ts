@@ -170,14 +170,18 @@ export async function updateProfileAction(formData: FormData) {
     throw new Error("Nombre no válido")
   }
 
-  const trimmedName = name.trim()
+  const trimmedName = name.trim().replace(/\s+/g, " ")
 
   if (!trimmedName) {
     throw new Error("El nombre no puede estar vacío")
   }
 
-  if (trimmedName.length > 80) {
-    throw new Error("El nombre no puede superar los 80 caracteres")
+  if (trimmedName.length < 2) {
+    throw new Error("El nombre debe tener al menos 2 caracteres.")
+  }
+
+  if (trimmedName.length > 50) {
+    throw new Error("El nombre no puede superar los 50 caracteres")
   }
 
   await prisma.user.update({
