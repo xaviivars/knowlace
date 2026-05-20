@@ -121,7 +121,7 @@ export function ArchivedSessionHistoryView({
           })}
         </nav>
 
-        <main className="min-h-0 flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-[#142544]/70 p-6 shadow-xl [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_transparent]">
+        <main className="min-h-0 flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-[#142544]/70 p-6 shadow-xl scrollbar-thin [scrollbar-color:rgb(82_82_91)_transparent]">
           {activeTab === "summary" && (
             <div className="space-y-6">
               <div className="grid gap-4 md:grid-cols-3">

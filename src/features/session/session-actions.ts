@@ -307,3 +307,51 @@ export async function restoreSession(sessionId: string) {
 
   return { success: true }
 }
+
+export async function getSessionPodiumAction(sessionId: string) {
+  const sessionAuth = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (!sessionAuth) {
+    throw new Error("Unauthorized")
+  }
+
+  const session = await prisma.teachingSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      id: true,
+      ownerId: true,
+    },
+  })
+
+  if (!session) {
+    throw new Error("Session not found")
+  }
+
+  if (session.ownerId !== sessionAuth.user.id) {
+    throw new Error("Forbidden")
+  }
+
+  const topParticipants = await prisma.participant.findMany({
+    where: {
+      sessionId,
+    },
+    orderBy: [
+      { score: "desc" },
+      { createdAt: "asc" },
+    ],
+    take: 3,
+    select: {
+      id: true,
+      name: true,
+      score: true,
+    },
+  })
+
+  return topParticipants.map((participant) => ({
+    id: participant.id,
+    name: participant.name,
+    score: participant.score,
+  }))
+}

@@ -284,3 +284,39 @@ import { QuestionType } from "@prisma/client"
 
     return slides
   }
+
+  export async function getPublicSlidesBySessionAction(sessionId: string) {
+  const session = await prisma.teachingSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      id: true,
+      pdfPages: true,
+      isArchived: true,
+    },
+  })
+
+  if (!session) {
+    throw new Error("Session not found")
+  }
+
+  if (session.isArchived) {
+    throw new Error("Esta sesión ya no está disponible.")
+  }
+
+  const questionSlides = await prisma.slide.findMany({
+    where: { sessionId },
+    orderBy: { order: "asc" },
+    include: {
+      question: {
+        include: {
+          options: true,
+        },
+      },
+    },
+  })
+
+  return buildSlides({
+    pdfPages: session.pdfPages,
+    questionSlides,
+  })
+}

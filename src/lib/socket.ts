@@ -4,8 +4,8 @@ let socket: Socket
 
 export function getSocket() {
   if (!socket) {
-    socket = io("http://localhost:3000", {
-      transports: ["websocket"],
+      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL ?? window.location.origin, {
+      transports: ["websocket", "polling"],
     })
   }
   return socket

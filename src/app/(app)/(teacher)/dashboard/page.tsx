@@ -30,7 +30,7 @@ export default async function Dashboard() {
 
   return (
     <AppBackground className="h-full overflow-hidden">
-      <main className="h-full overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_transparent]">
+      <main className="h-full overflow-y-auto scrollbar-thin [scrollbar-color:rgb(82_82_91)_transparent]">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10">
           <section className="flex flex-col gap-6 rounded-3xl border border-white/10 bg-[#142544]/70 p-8 shadow-2xl md:flex-row md:items-center md:justify-between">
             <div>

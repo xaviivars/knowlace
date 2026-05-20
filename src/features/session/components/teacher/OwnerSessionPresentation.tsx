@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import IdleQuestionView from "@/features/session/components/teacher/IdleQuestionView"
 import ActiveQuestionView from "@/features/session/components/teacher/ActiveQuestionView"
@@ -11,6 +11,8 @@ import { QuestionWithOptions, QuestionStats } from "@/features/question/question
 import PresentationToolbar from "@/features/session/components/PresentationToolbar"
 import { usePdfZoom } from "@/features/session/hooks/usePdfZoom"
 import { useFullscreen } from "@/features/session/hooks/useFullscreen"
+import { QuestionPodiumOverlay } from "@/features/question/components/QuestionPodiumOverlay"
+import { getSessionPodiumAction } from "@/features/session/session-actions"
 
 const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), { ssr: false })
 
@@ -77,6 +79,50 @@ export default function OwnerSessionPresentation({
     wasFullscreen.current = isFullscreen
   }, [isFullscreen, resetZoom])
 
+  useEffect(() => {
+    const question =
+      currentSlide?.type === "QUESTION"
+        ? currentSlide.question
+        : null
+
+    if (!question) {
+      previousQuestionStateRef.current = null
+      setShowPodium(false)
+      return
+    }
+
+    const previous = previousQuestionStateRef.current
+
+    const isAutoScoredQuestion = question.type !== "SHORT_ANSWER"
+
+    const hasJustFinished =
+      isAutoScoredQuestion &&
+      previous?.id === question.id &&
+      previous.status !== "RESULTS" &&
+      question.status === "RESULTS"
+
+    previousQuestionStateRef.current = {
+      id: question.id,
+      status: question.status,
+    }
+
+    if (!hasJustFinished) return
+
+    async function loadPodium() {
+      try {
+        const podiumResult = await getSessionPodiumAction(sessionId)
+        setPodium(podiumResult)
+        setShowPodium(true)
+      } catch (error) {
+        console.error(error)
+        setPodium([])
+        setShowPodium(true)
+      }
+    }
+
+    loadPodium()
+  }, [currentSlide, sessionId])
+
   function handleGoToPage(page: number) {
     const targetIndex = slides.findIndex(
       (slide) => slide.type === "PDF" && slide.page === page
@@ -86,6 +132,21 @@ export default function OwnerSessionPresentation({
 
     onSlideChange(targetIndex)
   }
+
+  const [showPodium, setShowPodium] = useState(false)
+  const [podium, setPodium] = useState<
+    {
+      id: string
+      name: string
+      score?: number
+      answerTimeMs?: number
+    }[]
+  >([])
+
+  const previousQuestionStateRef = useRef<{
+    id: string
+    status: string
+  } | null>(null)
 
   function renderContent() {
 
@@ -180,9 +241,20 @@ export default function OwnerSessionPresentation({
         onToggleFullscreen={() => toggleFullscreen(presentationRef.current)}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
         {renderContent()}
       </div>
+
+      {showPodium && stats && (
+        <QuestionPodiumOverlay
+          podium={podium}
+          totalAnswers={stats.totalAnswers}
+          correctAnswers={stats.correctAnswers}
+          totalParticipants={stats.totalParticipants}
+          accuracy={stats.percentage}
+          onContinue={() => setShowPodium(false)}
+        />
+      )}
       
     </div>
   )

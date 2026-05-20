@@ -126,7 +126,7 @@ export function SettingsPanel({
   )
 
   return (
-    <div className="h-full mt-4 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
+    <div className="h-full mt-4 overflow-y-auto scrollbar-thin [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
       <main className="ml-10 mr-auto flex w-full max-w-376 flex-col gap-14 px-10 py-9 text-white">
         <section>
           <p className="mb-2 text-sm font-medium uppercase tracking-[0.25em] text-blue-300">

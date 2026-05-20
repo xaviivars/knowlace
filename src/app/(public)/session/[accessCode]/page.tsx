@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { StudentSessionContainer } from "@/features/session/containers/student-session.container"
-import { getSlidesBySessionAction } from "@/features/question/question-actions"
+import { getPublicSlidesBySessionAction } from "@/features/question/question-actions"
 
 export default async function PublicSessionPage({
   params,
@@ -33,7 +33,7 @@ export default async function PublicSessionPage({
     }
   })
 
-  const slides = await getSlidesBySessionAction(session.id)
+  const slides = await getPublicSlidesBySessionAction(session.id)
 
   return (
     <StudentSessionContainer
