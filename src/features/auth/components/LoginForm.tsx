@@ -45,12 +45,14 @@ export function LoginForm ({
         <form
             onSubmit={handleSubmit}
             className={`
-                bg-[#0f1b2d]
+                relative
                 w-120
-                h-160
                 rounded-3xl
+                border border-white/10
+               bg-white/[0.07]
                 p-8
-                shadow-2xl
+                shadow-2xl shadow-black/30
+                backdrop-blur-xl
                 ${className}
             `}
             >

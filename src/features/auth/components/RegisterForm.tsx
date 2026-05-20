@@ -46,12 +46,15 @@ export function RegisterForm ({
         <form
             onSubmit={handleSubmit}
             className={`
-                bg-[#0f1b2d]
+                relative
                 w-120
-                h-190
+                min-h-190
                 rounded-3xl
+                border border-white/15
+                bg-white/[0.07]
                 p-8
-                shadow-2xl
+                shadow-2xl shadow-black/30
+                backdrop-blur-2xl
                 ${className}
             `}
         >
