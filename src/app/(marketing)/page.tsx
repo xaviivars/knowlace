@@ -164,7 +164,7 @@ export default function Home () {
           
         </section>
 
-        <section className="mx-auto max-w-7xl px-8 pb-24 pt-12">
+        <section id="features" className="mx-auto max-w-7xl px-8 pb-24 pt-12">
           <div className="mb-16 space-y-4 text-center">
             <h2 className="text-4xl font-bold text-white md:text-5xl">
               ¿Por qué Knowlace?
@@ -202,6 +202,63 @@ export default function Home () {
             />
           </div>
         </section>
+
+        <footer className="border-t border-white/10 bg-[#071426]/70 px-8 py-10 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-sm">
+              <h2 className="text-2xl font-bold text-white">
+                Knowlace.
+              </h2>
+
+              <p className="mt-3 text-sm leading-relaxed text-white/50">
+                Plataforma para crear sesiones interactivas y mejorar la participación en clase.
+              </p>
+
+              <p className="mt-5 text-xs text-white/35">
+                © {new Date().getFullYear()} Knowlace. Todos los derechos reservados.
+              </p>
+            </div>
+
+            <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
+
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-white/40">
+                  Legal
+                </h3>
+
+                <div className="mt-4 flex flex-col gap-3 text-sm">
+                  <a href="/legal/aviso-legal" className="text-white/55 transition hover:text-white">
+                    Aviso legal
+                  </a>
+                  <a href="/legal/privacidad" className="text-white/55 transition hover:text-white">
+                    Política de privacidad
+                  </a>
+                  <a href="/legal/cookies" className="text-white/55 transition hover:text-white">
+                    Política de cookies
+                  </a>
+                  <a href="/legal/terminos" className="text-white/55 transition hover:text-white">
+                    Términos y condiciones
+                  </a>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-white/40">
+                  Contacto
+                </h3>
+
+                <div className="mt-4 flex flex-col gap-3 text-sm">
+                  <a href="mailto:contacto@knowlace.es" className="text-white/55 transition hover:text-white">
+                    contacto@knowlace.es
+                  </a>
+                  <span className="text-white/35">
+                    Proyecto en desarrollo
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
 
       </main>
     </div>
