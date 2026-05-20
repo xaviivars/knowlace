@@ -1,6 +1,7 @@
 "use client"
 
 import { ResultStatCard } from "@/features/question/components/ResultStatCard"
+import { RelaunchQuestionButton } from "@/features/question/components/RelaunchQuestionButton"
 
 export type FrontQuestionType =
   | "MULTIPLE_CHOICE"
@@ -76,12 +77,7 @@ export default function QuestionResultsView({
         </div>
 
         {onRelaunch && (
-          <button
-            onClick={onRelaunch}
-            className="bg-yellow-500 hover:bg-yellow-600 px-6 py-3 rounded-xl font-semibold"
-          >
-            Relanzar pregunta
-          </button>
+          <RelaunchQuestionButton onClick={onRelaunch} />
         )}
       </div>
     )
@@ -133,12 +129,7 @@ export default function QuestionResultsView({
       </div>
 
       {onRelaunch && (
-        <button
-          onClick={onRelaunch}
-          className="bg-yellow-500 hover:bg-yellow-600 px-6 py-3 rounded-xl font-semibold"
-        >
-          Relanzar pregunta
-        </button>
+        <RelaunchQuestionButton onClick={onRelaunch} />
       )}
 
     </div>

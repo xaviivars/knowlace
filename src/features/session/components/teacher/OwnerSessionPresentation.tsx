@@ -177,7 +177,6 @@ export default function OwnerSessionPresentation({
           <ActiveQuestionView
             question={question}
             remainingTime={remainingTime ?? undefined}
-            isOwner={true}
             stats={stats ?? undefined}
             onEnd={onEndQuestion}
           />
@@ -208,11 +207,7 @@ export default function OwnerSessionPresentation({
         return (
           <IdleQuestionView
             question={question}
-            isOwner={true}
-            onNext={() => onSlideChange(slideIndex + 1)}
-            onPrevious={() => onSlideChange(slideIndex - 1)}
             onLaunch={onLaunchQuestion}
-            hasPrevious={slideIndex > 0}
           />
         )
     }
