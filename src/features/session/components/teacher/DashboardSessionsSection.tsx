@@ -167,9 +167,6 @@ export function DashboardSessionsSection({
 
       {sessions.length === 0 ? (
         <section className="rounded-3xl border border-dashed border-white/15 bg-[#142544] p-10 text-center shadow-xl">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/15 text-3xl">
-            🚀
-          </div>
 
           <h3 className="text-2xl font-bold">Crea tu primera sesión</h3>
 

@@ -22,6 +22,7 @@ import {
   restoreSession,
 } from "@/features/session/session-actions"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import Link from "next/link"
 
 type SettingsSection =
   | "profile"
@@ -365,15 +366,15 @@ function ArchiveSettings({
       <div className="max-w-5xl rounded-3xl border border-white/10 bg-[#142544]/80 p-6 shadow-xl">
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium uppercase tracking-[0.25em] text-blue-300">
-            Archivo
+            Histórico
           </p>
 
           <h3 className="text-3xl font-bold text-white">
             Sesiones archivadas
           </h3>
 
-          <p className="max-w-2xl text-white/55">
-            Las sesiones archivadas no aparecen en tu panel principal, pero puedes restaurarlas cuando quieras.
+          <p className="max-w-3xl text-white/55">
+            Consulta las sesiones que has retirado del panel principal. Puedes restaurarlas o eliminarlas definitivamente.
           </p>
         </div>
 
@@ -412,8 +413,11 @@ function ArchivedSessionRow({
   session: ArchivedSession
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/15 px-5 py-4 transition hover:bg-white/[0.04]">
-      <div className="min-w-0">
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/15 px-5 py-4 transition hover:bg-white/4">
+      <Link
+        href={`/dashboard/sessions/${session.id}/history`}
+        className="min-w-0 flex-1"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <h4 className="truncate text-base font-semibold text-white">
             {session.title}
@@ -440,7 +444,7 @@ function ArchivedSessionRow({
               : "—"}
           </span>
         </div>
-      </div>
+      </Link>
 
       <ArchivedSessionOptionsMenu
         sessionId={session.id}
