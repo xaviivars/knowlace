@@ -13,6 +13,7 @@ import { usePdfZoom } from "@/features/session/hooks/usePdfZoom"
 import { useFullscreen } from "@/features/session/hooks/useFullscreen"
 import { QuestionPodiumOverlay } from "@/features/question/components/QuestionPodiumOverlay"
 import { getSessionPodiumAction } from "@/features/session/session-actions"
+import { TeacherQuestionView } from "./TeacherQuestionView"
 
 const PdfViewer = dynamic(() => import("@/features/session/components/PdfViewer"), { ssr: false })
 
@@ -170,7 +171,12 @@ export default function OwnerSessionPresentation({
     switch (question.status) {
 
       case "COUNTDOWN":
-        return <CountdownOverlay seconds={countdown ?? 0} />
+        return (
+          <TeacherQuestionView
+            question={question}
+            isActive={false}
+          />
+        )
 
       case "ACTIVE":
         return (
@@ -217,7 +223,7 @@ export default function OwnerSessionPresentation({
   return (
     <div
       ref={presentationRef}
-      className="flex h-full w-full flex-col bg-[#0b162c]"
+      className="relative flex h-full w-full flex-col bg-[#0b162c]"
     >
       <PresentationToolbar
         currentPageNumber={currentPageNumber}
@@ -242,6 +248,8 @@ export default function OwnerSessionPresentation({
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
         {renderContent()}
       </div>
+
+      <CountdownOverlay seconds={countdown} />
 
       {showPodium && stats && (
         <QuestionPodiumOverlay

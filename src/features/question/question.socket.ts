@@ -25,6 +25,7 @@ async function launchCurrentQuestion(io: Server, accessCode: string) {
   if (question.status !== "IDLE") return;
 
   io.to(accessCode).emit("question-countdown", {
+    questionId: question.id,
     seconds: 3,
   });
 

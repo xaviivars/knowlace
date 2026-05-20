@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getSocket } from "@/lib/socket"
 
 export function useOwnerSession(accessCode: string, initialSlideIndex: number) {
@@ -11,50 +11,76 @@ export function useOwnerSession(accessCode: string, initialSlideIndex: number) {
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
   const [slideIndex, setSlideIndex] = useState(initialSlideIndex)
 
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const remainingTimeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  function clearCountdownInterval() {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current)
+      countdownIntervalRef.current = null
+    }
+  }
+
+  function clearRemainingTimeInterval() {
+    if (remainingTimeIntervalRef.current) {
+      clearInterval(remainingTimeIntervalRef.current)
+      remainingTimeIntervalRef.current = null
+    }
+  }
+
   useEffect(() => {
+    function handleConnect() {
+      socket.emit("owner-join", accessCode)
+    }
 
     if (socket.connected) {
-      socket.emit("owner-join", accessCode)
-    } else {
-      socket.on("connect", () => {
-        socket.emit("owner-join", accessCode)
-      })
+      handleConnect()
     }
+
+    socket.on("connect", handleConnect)
 
     const handleSlideUpdated = (index: number) => {
       setSlideIndex(index)
     }
 
-    socket.on("slide-updated", handleSlideUpdated)
+    const handleQuestionCountdown = ({ seconds }: { seconds: number }) => {
+      clearCountdownInterval()
+      clearRemainingTimeInterval()
 
-    socket.on("question-countdown", ({ seconds }) => {
-
+      setRemainingTime(null)
       setCountdown(seconds)
 
       let current = seconds
 
-      const interval = setInterval(() => {
-
+      countdownIntervalRef.current = setInterval(() => {
         current -= 1
 
         if (current <= 0) {
-          clearInterval(interval)
+          clearCountdownInterval()
           setCountdown(null)
-        } else {
-          setCountdown(current)
+          return
         }
 
+        setCountdown(current)
       }, 1000)
+    }
 
-    })
+    const handleQuestionStarted = ({
+      timeLimit,
+      startedAt,
+    }: {
+      timeLimit: number
+      startedAt: string
+    }) => {
+      clearCountdownInterval()
+      clearRemainingTimeInterval()
 
-    socket.on("question-started", ({ timeLimit, startedAt }) => {
+      setCountdown(null)
 
       const start = new Date(startedAt).getTime()
       const end = start + timeLimit * 1000
 
       const updateTimer = () => {
-
         const now = Date.now()
 
         const remaining = Math.max(
@@ -65,52 +91,55 @@ export function useOwnerSession(accessCode: string, initialSlideIndex: number) {
         setRemainingTime(remaining)
 
         if (remaining <= 0) {
-          clearInterval(interval)
+          clearRemainingTimeInterval()
         }
-
       }
 
       updateTimer()
 
-      const interval = setInterval(updateTimer, 1000)
-
-    })
-
-    socket.on("question-ended", () => {
-
-      setRemainingTime(null)
-
-    })
-
-    socket.on("question-stats-updated", (data) => {
-
-    })
-
-    socket.on("question-reset", () => {
-
-      setRemainingTime(null)
-
-    })
-
-    return () => {
-      
-      socket.off("slide-updated")
-      socket.off("question-started")
-      socket.off("question-ended")
-      socket.off("question-countdown")
-      socket.off("question-stats-updated")
-      socket.off("question-reset")
-
+      remainingTimeIntervalRef.current = setInterval(updateTimer, 1000)
     }
 
-  }, [accessCode])
+    const handleQuestionEnded = () => {
+      clearCountdownInterval()
+      clearRemainingTimeInterval()
+
+      setCountdown(null)
+      setRemainingTime(null)
+    }
+
+    const handleQuestionReset = () => {
+      clearCountdownInterval()
+      clearRemainingTimeInterval()
+
+      setCountdown(null)
+      setRemainingTime(null)
+    }
+
+    socket.on("slide-updated", handleSlideUpdated)
+    socket.on("question-countdown", handleQuestionCountdown)
+    socket.on("question-started", handleQuestionStarted)
+    socket.on("question-ended", handleQuestionEnded)
+    socket.on("question-reset", handleQuestionReset)
+
+    return () => {
+      socket.off("connect", handleConnect)
+      socket.off("slide-updated", handleSlideUpdated)
+      socket.off("question-countdown", handleQuestionCountdown)
+      socket.off("question-started", handleQuestionStarted)
+      socket.off("question-ended", handleQuestionEnded)
+      socket.off("question-reset", handleQuestionReset)
+
+      clearCountdownInterval()
+      clearRemainingTimeInterval()
+    }
+  }, [socket, accessCode])
 
   return {
     socket,
     countdown,
     remainingTime,
     slideIndex,
-    setSlideIndex
+    setSlideIndex,
   }
-
 }

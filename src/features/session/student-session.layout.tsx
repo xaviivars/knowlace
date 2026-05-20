@@ -1,6 +1,6 @@
 "use client"
 
-import PresentationArea from "@/features/session/components/student/StudentSessionPresentation"
+import StudentSessionPresentation from "@/features/session/components/student/StudentSessionPresentation"
 import { QuestionStats } from "@/features/question/question.types"
 import { Participant } from "@/features/participant/participant.types"
 import StudentSidebar from "@/features/session/components/student/StudentSidebar"
@@ -104,17 +104,7 @@ export default function SessionLayout(props: Props) {
           </div>
         )}
 
-        {/* COUNTDOWN OVERLAY */}
-
-        {countdown !== null && (
-          <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
-            <div className="text-8xl font-bold text-white animate-pulse">
-              {countdown}
-            </div>
-          </div>
-        )}
-
-        <PresentationArea
+        <StudentSessionPresentation
           joined={joined}
           isActive={isActive}
 
