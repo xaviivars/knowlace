@@ -1,23 +1,6 @@
 "use client"
 
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend
-} from "chart.js"
-import { Bar } from "react-chartjs-2"
 import { ResultStatCard } from "@/features/question/components/ResultStatCard"
-
-ChartJS.register(
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend
-)
 
 export type FrontQuestionType =
   | "MULTIPLE_CHOICE"
@@ -104,30 +87,6 @@ export default function QuestionResultsView({
     )
   }
 
-  const labels = question.options.map(opt => opt.content)
-
-  const dataValues = question.options.map(opt =>
-    stats.optionCounts[opt.id] ?? 0
-  )
-
-  const backgroundColors = question.options.map(opt =>
-    opt.isCorrect
-      ? "rgba(34,197,94,0.8)"   // verde
-      : "rgba(239,68,68,0.6)"   // rojo suave
-  )
-
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: "Respuestas",
-        data: dataValues,
-        backgroundColor: backgroundColors,
-        borderRadius: 8,
-      }
-    ]
-  }
-
   return (
     <div className="h-full bg-[#0b162c] text-white flex flex-col items-center justify-center px-6 space-y-8">
 
@@ -135,16 +94,11 @@ export default function QuestionResultsView({
         {question.content}
       </h2>
 
-      <div className="w-full max-w-3xl h-96">
-        <Bar 
-          key={`${stats.totalAnswers}-${JSON.stringify(stats.optionCounts)}`}
-          data={data}
-          options={{
-            responsive: true,
-            maintainAspectRatio: true
-          }}
-        />
-      </div>
+      <OptionResultBars
+        options={question.options}
+        optionCounts={stats.optionCounts}
+        totalAnswers={stats.totalAnswers}
+      />
 
       <div className="grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
         <ResultStatCard
@@ -187,6 +141,99 @@ export default function QuestionResultsView({
         </button>
       )}
 
+    </div>
+  )
+}
+
+function OptionResultBars({
+  options,
+  optionCounts,
+  totalAnswers,
+}: {
+  options: {
+    id: string
+    content: string
+    isCorrect: boolean
+  }[]
+  optionCounts: Record<string, number>
+  totalAnswers: number
+}) {
+  return (
+    <div className="w-full max-w-4xl space-y-4">
+      {options.map((option, index) => {
+        const count = optionCounts[option.id] ?? 0
+        const percentage =
+          totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0
+
+        return (
+          <div
+            key={option.id}
+            className={`
+              overflow-hidden rounded-2xl border p-4 transition
+              ${
+                option.isCorrect
+                  ? "border-emerald-400/30 bg-emerald-500/10"
+                  : "border-white/10 bg-white/4"
+              }
+            `}
+          >
+            <div className="mb-3 flex items-start justify-between gap-4">
+              <div className="flex min-w-0 items-start gap-3">
+                <div
+                  className={`
+                    flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-bold
+                    ${
+                      option.isCorrect
+                        ? "bg-emerald-400/20 text-emerald-200"
+                        : "bg-white/10 text-white/60"
+                    }
+                  `}
+                >
+                  {String.fromCharCode(65 + index)}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="wrap-break-word text-base font-semibold text-white">
+                    {option.content}
+                  </p>
+
+                  {option.isCorrect && (
+                    <p className="mt-1 text-sm font-medium text-emerald-300">
+                      Respuesta correcta
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="shrink-0 text-right">
+                <p className="text-lg font-black text-white">
+                  {percentage}%
+                </p>
+
+                <p className="text-xs text-white/45">
+                  {count} respuesta{count === 1 ? "" : "s"}
+                </p>
+              </div>
+            </div>
+
+            <div className="h-3 overflow-hidden rounded-full bg-black/25">
+              <div
+                className={`
+                  h-full rounded-full transition-all duration-700 ease-out
+                  ${
+                    option.isCorrect
+                      ? "bg-emerald-400"
+                      : "bg-blue-400/70"
+                  }
+                `}
+                style={{
+                  width: `${percentage}%`,
+                }}
+              />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

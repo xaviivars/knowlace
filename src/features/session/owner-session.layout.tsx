@@ -64,14 +64,6 @@ export default function OwnerSessionLayout({
           )}
       </header>
 
-      <div className="border-b border-white/10 px-8 py-4">
-        <SessionControls
-          sessionId={sessionId}
-          accessCode={accessCode}
-          initialIsActive={isActive}
-        />
-      </div>
-
       <div className="flex-1 overflow-hidden flex">
         <div className="flex-1 overflow-hidden">
           <OwnerSessionPresentation
@@ -90,6 +82,13 @@ export default function OwnerSessionLayout({
             onLaunchQuestion={onLaunchQuestion}
             onEndQuestion={onEndQuestion}
             onRelaunchQuestion={onRelaunchQuestion}
+            toolbarActions={
+              <SessionControls
+                sessionId={sessionId}
+                accessCode={accessCode}
+                initialIsActive={isActive}
+              />
+            }
           />
         </div>
 

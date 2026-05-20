@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 
 type PresentationToolbarProps = {
   currentPageNumber: number
@@ -21,6 +21,8 @@ type PresentationToolbarProps = {
   isFullscreen?: boolean
   onToggleFullscreen?: () => void
   onGoToPage?: (page: number) => void
+
+  rightActions?: ReactNode
 }
 
 export default function PresentationToolbar({
@@ -41,7 +43,9 @@ export default function PresentationToolbar({
   onResetZoom,
   isFullscreen,
   onToggleFullscreen,
-  onGoToPage
+  onGoToPage,
+
+  rightActions
 }: PresentationToolbarProps) {
 
   const [pageInput, setPageInput] = useState(String(currentPageNumber || 1))
@@ -106,114 +110,123 @@ export default function PresentationToolbar({
   }
 
   return (
-    <div className="flex h-14 shrink-0 items-center justify-center border-b border-white/10 bg-[#081120]/95 px-5 text-white shadow-sm backdrop-blur">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handlePreviousClick}
-          disabled={!canGoPrevious}
-          className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          ←
-        </button>
-
-        <form
-          onSubmit={handleNextClick}
-          className="flex h-8 w-36 items-center justify-center rounded-lg bg-white/5 px-2 text-sm font-medium text-white/85"
-        >
-          <span className="leading-none text-white/55">
-            Página
-          </span>
-
-          <input
-            value={pageInput}
-            onChange={(event) => setPageInput(event.target.value)}
-            onBlur={() => {
-              commitPageInput()
-            }}
-            disabled={!onGoToPage}
-            inputMode="numeric"
-            className="
-              mx-0.5
-              flex
-              h-6
-              w-7
-              items-center
-              rounded-md
-              border border-transparent
-              bg-transparent
-              p-0
-              text-center
-              text-sm
-              leading-none
-              text-white
-              outline-none
-              transition
-              hover:border-white/10
-              hover:bg-white/5
-              focus:border-blue-400/50
-              focus:bg-blue-500/10
-              focus:ring-2
-              focus:ring-blue-400/10
-              disabled:cursor-not-allowed
-            "
-          />
-
-          <span className="leading-none text-white/55">
-            de {totalPdfPages}
-          </span>
-        </form>
-
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={!canGoNext}
-          className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          →
-        </button>
-      </div>
-
-      <div className="mx-4 h-6 w-px bg-white/20" />
-
-        <div className="flex items-center gap-2">
+    <div className="grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-white/10 bg-[#081120]/95 px-5 text-white shadow-sm backdrop-blur">
+      <div className="col-start-2 flex items-center justify-center">
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={onZoomOut}
-            disabled={!showZoomControls || !canZoomOut}
+            onClick={handlePreviousClick}
+            disabled={!canGoPrevious}
             className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
           >
-            −
+            ←
           </button>
 
-          <button
-            type="button"
-            onClick={onResetZoom}
-            disabled={!showZoomControls}
-            className="min-w-16 rounded-lg bg-white/5 px-3 py-1.5 text-center text-sm font-medium text-white/85 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+          <form
+            onSubmit={handleNextClick}
+            className="flex h-8 w-36 items-center justify-center rounded-lg bg-white/5 px-2 text-sm font-medium text-white/85"
           >
-            {zoomPercentage}%
-          </button>
+            <span className="leading-none text-white/55">
+              Página
+            </span>
+
+            <input
+              value={pageInput}
+              onChange={(event) => setPageInput(event.target.value)}
+              onBlur={() => {
+                commitPageInput()
+              }}
+              disabled={!onGoToPage}
+              inputMode="numeric"
+              className="
+                mx-0.5
+                flex
+                h-6
+                w-7
+                items-center
+                rounded-md
+                border border-transparent
+                bg-transparent
+                p-0
+                text-center
+                text-sm
+                leading-none
+                text-white
+                outline-none
+                transition
+                hover:border-white/10
+                hover:bg-white/5
+                focus:border-blue-400/50
+                focus:bg-blue-500/10
+                focus:ring-2
+                focus:ring-blue-400/10
+                disabled:cursor-not-allowed
+              "
+            />
+
+            <span className="leading-none text-white/55">
+              de {totalPdfPages}
+            </span>
+          </form>
 
           <button
             type="button"
-            onClick={onZoomIn}
-            disabled={!showZoomControls || !canZoomIn}
+            onClick={onNext}
+            disabled={!canGoNext}
             className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
           >
-            +
+            →
           </button>
         </div>
-      
+
         <div className="mx-4 h-6 w-px bg-white/20" />
-          <button
-            type="button"
-            onClick={onToggleFullscreen}
-            disabled={!onToggleFullscreen}
-            className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            {isFullscreen ? "⤢" : "⛶"}
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onZoomOut}
+              disabled={!showZoomControls || !canZoomOut}
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              −
+            </button>
+
+            <button
+              type="button"
+              onClick={onResetZoom}
+              disabled={!showZoomControls}
+              className="min-w-16 rounded-lg bg-white/5 px-3 py-1.5 text-center text-sm font-medium text-white/85 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              {zoomPercentage}%
+            </button>
+
+            <button
+              type="button"
+              onClick={onZoomIn}
+              disabled={!showZoomControls || !canZoomIn}
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              +
+            </button>
+          </div>
+        
+          <div className="mx-4 h-6 w-px bg-white/20" />
+            <button
+              type="button"
+              onClick={onToggleFullscreen}
+              disabled={!onToggleFullscreen}
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              {isFullscreen ? "⤢" : "⛶"}
+            </button>
+          </div>
+
+          {rightActions && (
+            <div className="col-start-3 flex items-center justify-end gap-2">
+              {rightActions}
+            </div>
+          )}
+
         </div>
     )
   }

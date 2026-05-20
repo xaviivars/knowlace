@@ -191,7 +191,7 @@ function PodiumPlace({
       <div
         className={`
           flex w-full flex-col items-center justify-center rounded-t-3xl border border-white/10
-          bg-gradient-to-b from-white/15 to-white/5
+          bg-linear-to-b from-white/15 to-white/5
           ${heightClass}
           ${featured ? "ring-2 ring-yellow-300/20" : ""}
         `}

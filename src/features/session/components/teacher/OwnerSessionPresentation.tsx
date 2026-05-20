@@ -32,6 +32,7 @@ type Props = {
   onLaunchQuestion: () => void
   onEndQuestion: () => void
   onRelaunchQuestion: () => void
+  toolbarActions?: React.ReactNode
 }
 
 export default function OwnerSessionPresentation({
@@ -49,7 +50,8 @@ export default function OwnerSessionPresentation({
   onSlideChange,
   onLaunchQuestion,
   onEndQuestion,
-  onRelaunchQuestion
+  onRelaunchQuestion,
+  toolbarActions,
 }: Props) {
 
   const {
@@ -239,6 +241,7 @@ export default function OwnerSessionPresentation({
         onResetZoom={resetZoom}
         isFullscreen={isFullscreen}
         onToggleFullscreen={() => toggleFullscreen(presentationRef.current)}
+        rightActions={toolbarActions}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin [scrollbar-color:rgb(82_82_91)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/30">
