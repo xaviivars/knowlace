@@ -5,12 +5,19 @@ import WaitingRoomView from "@/features/session/components/student/WaitingRoomVi
 import StudentQuestionView from "@/features/session/components/student/StudentQuestionView"
 import StudentResultsView from "@/features/session/components/student/StudentResultsView"
 import { QuestionStats } from "@/features/question/question.types"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import CountdownOverlay from "../CountdownOverlay"
 import PresentationToolbar from "@/features/session/components/PresentationToolbar"
 import { usePdfZoom } from "@/features/session/hooks/usePdfZoom"
 import { useFullscreen } from "@/features/session/hooks/useFullscreen"
 import PdfViewer from "../PdfViewer"
+import { QuestionPodiumOverlay } from "@/features/question/components/QuestionPodiumOverlay"
+
+type LeaderboardParticipant = {
+  id: string
+  name: string
+  score?: number
+}
 
 type Props = {
   joined: boolean
@@ -34,6 +41,8 @@ type Props = {
   onSlideChange: (index: number) => void
   refetchStats?: () => void
   pdfUrl: string
+
+  leaderboard?: LeaderboardParticipant[]
 }
 
 export default function StudentSessionPresentation({
@@ -58,6 +67,8 @@ export default function StudentSessionPresentation({
   stats,
   refetchStats,
   pdfUrl,
+
+  leaderboard = []
 }: Props) {
   const currentSlide = slides[slideIndex]
 
@@ -85,6 +96,13 @@ export default function StudentSessionPresentation({
 
   const wasFullscreen = useRef(isFullscreen)
 
+  const [showPodium, setShowPodium] = useState(false)
+
+  const previousQuestionStateRef = useRef<{
+    id: string
+    status: string
+  } | null>(null)
+
   useEffect(() => {
     if (
       currentQuestion?.status === "RESULTS" &&
@@ -102,6 +120,38 @@ export default function StudentSessionPresentation({
 
     wasFullscreen.current = isFullscreen
   }, [isFullscreen, resetZoom])
+
+  useEffect(() => {
+    const question =
+      currentSlide?.type === "QUESTION"
+        ? currentSlide.question
+        : null
+
+    if (!question) {
+      previousQuestionStateRef.current = null
+      setShowPodium(false)
+      return
+    }
+
+    const previous = previousQuestionStateRef.current
+
+    const isAutoScoredQuestion = question.type !== "SHORT_ANSWER"
+
+    const hasJustFinished =
+      isAutoScoredQuestion &&
+      previous?.id === question.id &&
+      previous!.status !== "RESULTS" &&
+      question.status === "RESULTS"
+
+    previousQuestionStateRef.current = {
+      id: question.id,
+      status: question.status,
+    }
+
+    if (!hasJustFinished) return
+
+    setShowPodium(true)
+  }, [currentSlide])
 
   function getCurrentPageNumber() {
     if (!currentSlide) return 0
@@ -264,6 +314,17 @@ export default function StudentSessionPresentation({
           </div>
 
           <CountdownOverlay seconds={countdown} />
+
+          {showPodium && stats && (
+            <QuestionPodiumOverlay
+              podium={leaderboard.slice(0, 3)}
+              totalAnswers={stats.totalAnswers}
+              correctAnswers={stats.correctAnswers}
+              totalParticipants={stats.totalParticipants}
+              accuracy={stats.percentage}
+              onContinue={() => setShowPodium(false)}
+            />
+          )}
         </>
       )}
     </div>

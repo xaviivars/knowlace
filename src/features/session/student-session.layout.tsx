@@ -125,6 +125,8 @@ export default function SessionLayout(props: Props) {
           stats={stats}
           refetchStats={refetchStats}
           pdfUrl={pdfUrl}
+          
+          leaderboard={leaderboard}
         />
 
         <StudentSidebar
